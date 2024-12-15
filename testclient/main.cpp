@@ -83,5 +83,5 @@ int main() {
         }
     }
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << i << ' ' << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "s" << '\n';
+    std::cout << i << ' ' << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << '\n';
 }
