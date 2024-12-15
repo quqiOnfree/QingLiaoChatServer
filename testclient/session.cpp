@@ -45,7 +45,6 @@ bool Session::registerUser(std::string_view email, std::string_view password, Us
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     bool returnState = returnJson["state"].getString() == "success";
     if (returnState)
         newUserID = UserID(returnJson["user_id"].getInt());
@@ -61,7 +60,6 @@ bool Session::loginUser(UserID user_id, std::string_view password)
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     bool returnState = returnJson["state"].getString() == "success";
     if (returnState)
     {
@@ -81,7 +79,6 @@ bool Session::createFriendApplication(UserID user_id)
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     return returnJson["state"].getString() == "success";
 }
 
@@ -95,7 +92,6 @@ bool Session::applyFriendApplication(UserID user_id)
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     return returnJson["state"].getString() == "success";
 }
 
@@ -109,7 +105,6 @@ bool Session::rejectFriendApplication(UserID user_id)
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     return returnJson["state"].getString() == "success";
 }
 
@@ -123,7 +118,6 @@ bool Session::createGroupApplication(GroupID group_id)
             package->type = DataPackage::Text;
         }).get();
     auto returnJson = readJsonFunctionDataPackage(returnPackage);
-    std::cout << returnJson["message"].getString() << '\n';
     return returnJson["state"].getString() == "success";
 }
 

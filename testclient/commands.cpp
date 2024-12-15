@@ -82,10 +82,7 @@ public:
     void execute(const opt::Option& opt)
     {
         qls::UserID user_id;
-        if (session.registerUser(opt.get_string("email"), opt.get_string("password"), user_id))
-            std::cout << "Successfully created a new user! User id is: " << user_id << '\n';
-        else
-            std::cout << "Failed to created a new user!\n";
+        session.registerUser(opt.get_string("email"), opt.get_string("password"), user_id);
     }
 };
 
@@ -105,10 +102,7 @@ public:
 
     void execute(const opt::Option& opt)
     {
-        if (session.loginUser(qls::UserID(opt.get_int("userid")), opt.get_string("password")))
-            std::cout << "Successfully logined a user!\n";
-        else
-            std::cout << "Failed to logined a user!\n";
+        session.loginUser(qls::UserID(opt.get_int("userid")), opt.get_string("password"));
     }
 };
 
@@ -127,10 +121,7 @@ public:
 
     void execute(const opt::Option& opt)
     {
-        if (session.createFriendApplication(qls::UserID(opt.get_int("userid"))))
-            std::cout << "Successfully send a application to the user!\n";
-        else
-            std::cout << "Failed to send a application to the user!\n";
+        session.createFriendApplication(qls::UserID(opt.get_int("userid")));
     }
 };
 
@@ -149,10 +140,7 @@ public:
 
     void execute(const opt::Option& opt)
     {
-        if (session.applyFriendApplication(qls::UserID(opt.get_int("userid"))))
-            std::cout << "Successfully apply a application to the user!\n";
-        else
-            std::cout << "Failed to apply a application to the user!\n";
+        session.applyFriendApplication(qls::UserID(opt.get_int("userid")));
     }
 };
 
@@ -171,10 +159,7 @@ public:
 
     void execute(const opt::Option& opt)
     {
-        if (session.rejectFriendApplication(qls::UserID(opt.get_int("userid"))))
-            std::cout << "Successfully reject a application to the user!\n";
-        else
-            std::cout << "Failed to reject a application to the user!\n";
+        session.rejectFriendApplication(qls::UserID(opt.get_int("userid")));
     }
 };
 
@@ -193,10 +178,7 @@ public:
 
     void execute(const opt::Option& opt)
     {
-        if (session.createGroupApplication(qls::GroupID(opt.get_int("groupid"))))
-            std::cout << "Successfully send a application to the group!\n";
-        else
-            std::cout << "Failed to send a application to the group!\n";
+        session.createGroupApplication(qls::GroupID(opt.get_int("groupid")));
     }
 };
 

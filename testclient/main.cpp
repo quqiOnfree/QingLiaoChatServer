@@ -65,30 +65,23 @@ int main() {
     network.connect();
 
     std::cout << "Connecting to server...\n";
-    while (true) {
+    size_t i = 0;
+    auto start = std::chrono::high_resolution_clock::now();
+    for (; i < 10000ull; ++i) {
         if (!can_be_used) {
             using namespace std::chrono;
             std::this_thread::sleep_for(0.1s);
             continue;
         }
-        char buffer[8192]{0};
-        std::string command;
-        std::cin.getline(buffer, sizeof(buffer) - 1);
-        command = buffer;
-        if (command == "") continue;
-
-        std::vector<std::string> vec = split(strip(command));
         try {
-            if (!command_manager.canFindCommand(vec[0])) {
-                std::cout << "Could not find a command: " << vec[0] << '\n';
-                continue;
-            }
-            auto command = command_manager.getCommand(vec[0]);
+            auto command = command_manager.getCommand("registerUser");
             opt::Option opt = command->getOption();
-            opt.parse(std::vector<std::string>{++vec.begin(), vec.end()});
+            opt.parse(std::vector<std::string>{"--email=1@qq.com", "--password=123456"});
             command->execute(opt);
         } catch(const std::exception& e) {
             std::cerr << e.what() << '\n';
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << i << ' ' << std::chrono::duration_cast<std::chrono::milliseconds>(end - start) << "s" << '\n';
 }
