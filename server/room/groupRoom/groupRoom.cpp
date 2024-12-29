@@ -5,6 +5,7 @@
 #include <format>
 #include <memory>
 #include <system_error>
+#include <memory_resource>
 
 #include <Json.h>
 
@@ -13,6 +14,8 @@
 #include "returnStateMessage.hpp"
 
 extern qls::Manager serverManager;
+
+static std::pmr::synchronized_pool_resource local_sync_group_room_pool;
 
 namespace qls
 {
@@ -45,21 +48,20 @@ struct GroupRoomImpl
 
 // GroupRoom
 GroupRoom::GroupRoom(GroupID group_id, UserID administrator, bool is_create):
-    m_impl(std::make_unique<GroupRoomImpl>())
+    m_impl(static_cast<GroupRoomImpl*>(local_sync_group_room_pool.allocate(sizeof(GroupRoomImpl))), {})
 {
     m_impl->m_group_id = group_id;
     m_impl->m_administrator_user_id = administrator;
 
-    if (is_create)
-    {
+    if (is_create) {
         // 创建群聊 sql
         m_impl->m_can_be_used = true;
-    }
-    else
-    {
+    } else {
         // 加载群聊 sql
         m_impl->m_can_be_used = true;
     }
+
+    TextDataRoom::joinRoom(administrator);
 }
 
 GroupRoom::~GroupRoom() = default;
@@ -68,9 +70,12 @@ bool GroupRoom::addMember(UserID user_id)
 {
     if (!m_impl->m_can_be_used)
         throw std::system_error(make_error_code(qls_errc::group_room_unable_to_use));
-    std::lock_guard<std::shared_mutex> lg(m_impl->m_user_id_map_mutex);
-    if (m_impl->m_user_id_map.find(user_id) == m_impl->m_user_id_map.cend())
-        m_impl->m_user_id_map.emplace(user_id, serverManager.getUser(user_id)->getUserName());
+    {
+        std::lock_guard<std::shared_mutex> lg(m_impl->m_user_id_map_mutex);
+        if (m_impl->m_user_id_map.find(user_id) == m_impl->m_user_id_map.cend())
+            m_impl->m_user_id_map.emplace(user_id, serverManager.getUser(user_id)->getUserName());
+    }
+    TextDataRoom::joinRoom(user_id);
 
     return true;
 }
@@ -87,9 +92,12 @@ bool GroupRoom::removeMember(UserID user_id)
 {
     if (!m_impl->m_can_be_used)
         throw std::system_error(make_error_code(qls_errc::group_room_unable_to_use));
-    std::lock_guard<std::shared_mutex> lg(m_impl->m_user_id_map_mutex);
-    if (m_impl->m_user_id_map.find(user_id) != m_impl->m_user_id_map.cend())
-        m_impl->m_user_id_map.erase(user_id);
+    {
+        std::lock_guard<std::shared_mutex> lg(m_impl->m_user_id_map_mutex);
+        if (m_impl->m_user_id_map.find(user_id) != m_impl->m_user_id_map.cend())
+            m_impl->m_user_id_map.erase(user_id);
+    }
+    TextDataRoom::leaveRoom(user_id);
 
     return true;
 }
@@ -546,6 +554,11 @@ void GroupRoom::removeThisRoom()
 bool GroupRoom::canBeUsed() const
 {
     return m_impl->m_can_be_used;
+}
+
+void GroupRoomImplDeleter::operator()(GroupRoomImpl *gri)
+{
+    local_sync_group_room_pool.deallocate(gri, sizeof(GroupRoomImpl));
 }
 
 } // namespace qls

@@ -20,8 +20,12 @@ namespace qls
 {
 
 struct GroupRoomImpl;
+struct GroupRoomImplDeleter
+{
+    void operator()(GroupRoomImpl* gri);
+};
 
-class GroupRoom: public TextDataRoom
+class GroupRoom: protected TextDataRoom
 {
 public:
     struct UserDataStructure
@@ -69,7 +73,7 @@ public:
     bool canBeUsed() const;
 
 private:
-    std::unique_ptr<GroupRoomImpl> m_impl;
+    std::unique_ptr<GroupRoomImpl, GroupRoomImplDeleter> m_impl;
 };
 
 } // namespace qls

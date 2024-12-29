@@ -7,16 +7,14 @@
 
 #include "Json.h"
 #include "dataPackage.h"
+#include "manager.h"
+#include "logger.hpp"
+
+extern qls::Manager serverManager;
+extern Log::Logger serverLogger;
 
 namespace qls
 {
-    
-struct BaseRoomImpl
-{
-    std::unordered_map<UserID, std::shared_ptr<User>>
-                            m_userMap;
-    std::shared_mutex       m_userMap_mutex;
-};
 
 /*
 * ------------------------------------------------------------------------
@@ -24,53 +22,48 @@ struct BaseRoomImpl
 * ------------------------------------------------------------------------
 */
 
-BaseRoom::BaseRoom():
-    m_impl(std::make_unique<BaseRoomImpl>())
-{}
-
-BaseRoom::~BaseRoom() = default;
-
-bool BaseRoom::joinRoom(UserID user_id, const std::shared_ptr<User>& user_ptr)
+bool BaseRoom::joinRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> local_unique_lock(m_impl->m_userMap_mutex);
-    if (!user_ptr->getUserID() != user_id ||
-        m_impl->m_userMap.find(user_id) != m_impl->m_userMap.cend())
+    std::unique_lock<std::shared_mutex> local_unique_lock(this->m_user_set_mutex);
+    if (this->m_user_set.find(user_id) != this->m_user_set.cend())
         return false;
 
-    m_impl->m_userMap.emplace(user_id, user_ptr);
+    this->m_user_set.emplace(user_id);
     return true;
 }
 
 bool BaseRoom::hasUser(UserID user_id) const
 {
-    std::unique_lock<std::shared_mutex> local_unique_lock(m_impl->m_userMap_mutex);
-    return m_impl->m_userMap.find(user_id) != m_impl->m_userMap.cend();
+    std::shared_lock<std::shared_mutex> local_shared_lock(this->m_user_set_mutex);
+    return this->m_user_set.find(user_id) != this->m_user_set.cend();
 }
 
 bool BaseRoom::leaveRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> local_unique_lock(m_impl->m_userMap_mutex);
-    auto iter = m_impl->m_userMap.find(user_id);
-    if (iter == m_impl->m_userMap.cend())
+    std::unique_lock<std::shared_mutex> local_unique_lock(this->m_user_set_mutex);
+    auto iter = this->m_user_set.find(user_id);
+    if (iter == this->m_user_set.cend())
         return false;
 
-    m_impl->m_userMap.erase(iter);
+    this->m_user_set.erase(iter);
     return true;
 }
 
 void BaseRoom::sendData(std::string_view data)
 {
-    std::shared_lock<std::shared_mutex> local_shared_lock(m_impl->m_userMap_mutex);
+    std::shared_lock<std::shared_mutex> local_shared_lock(this->m_user_set_mutex);
 
-    for (auto& [user_id, user_ptr]: m_impl->m_userMap) {
-        user_ptr->notifyAll(data);
+    for (auto i = this->m_user_set.cbegin(); i != this->m_user_set.cend(); ++i) {
+        serverManager.getUser(*i)->notifyAll(data);
     }
 }
 
 void BaseRoom::sendData(std::string_view data, UserID user_id)
 {
-    std::shared_lock<std::shared_mutex> local_shared_lock(m_impl->m_userMap_mutex);
-    m_impl->m_userMap.find(user_id)->second->notifyAll(data);
+    std::shared_lock<std::shared_mutex> local_shared_lock(this->m_user_set_mutex);
+    if (this->m_user_set.find(user_id) == this->m_user_set.cend())
+        throw std::logic_error("User id not in room.");
+    serverManager.getUser(user_id)->notifyAll(data);
 }
 
 /*
