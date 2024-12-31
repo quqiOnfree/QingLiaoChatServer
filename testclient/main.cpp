@@ -9,6 +9,8 @@
 #include "session.h"
 #include "commands.h"
 #include <option.hpp>
+#include <groupid.hpp>
+#include <userid.hpp>
 
 static std::string strip(std::string_view data)
 {
