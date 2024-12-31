@@ -2,9 +2,6 @@
 
 #include <iostream>
 #include <userid.hpp>
-#include "session.h"
-
-extern qls::Session session;
 
 namespace qls
 {
@@ -23,7 +20,7 @@ public:
         return option;
     }
 
-    void execute(const opt::Option& option)
+    void execute(Session& session, const opt::Option& option)
     {
         if (option.has_opt_with_value("name"))
         {
@@ -59,7 +56,7 @@ public:
         return {};
     }
 
-    void execute(const opt::Option& option)
+    void execute(Session& session, const opt::Option& option)
     {
         exit(0);
     }
@@ -79,7 +76,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         qls::UserID user_id;
         session.registerUser(opt.get_string("email"), opt.get_string("password"), user_id);
@@ -100,7 +97,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         session.loginUser(qls::UserID(opt.get_int("userid")), opt.get_string("password"));
     }
@@ -119,7 +116,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.createFriendApplication(qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully sent a application to the user!\n";
@@ -141,7 +138,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.applyFriendApplication(qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully applied a application to the user!\n";
@@ -163,7 +160,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.rejectFriendApplication(qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully rejected a application to the user!\n";
@@ -180,7 +177,7 @@ public:
 
     opt::Option getOption() const { return {}; }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.createGroup())
             std::cout << "Successfully created a group!\n";
@@ -202,7 +199,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.createGroupApplication(qls::GroupID(opt.get_int("groupid"))))
             std::cout << "Successfully sent a application to the group!\n";
@@ -225,7 +222,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.applyGroupApplication(qls::GroupID(opt.get_int("groupid")), qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully applied a application to the group!\n";
@@ -248,7 +245,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.rejectGroupApplication(qls::GroupID(opt.get_int("groupid")), qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully applied a application to the group!\n";
@@ -271,7 +268,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.sendFriendMessage(qls::UserID(opt.get_int("userid")), opt.get_string("message")))
             std::cout << "Successfully sent a message to your friend!\n";
@@ -294,7 +291,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.sendGroupMessage(qls::GroupID(opt.get_int("groupid")), opt.get_string("message")))
             std::cout << "Successfully sent a message to the group!\n";
@@ -316,7 +313,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.removeFriend(qls::UserID(opt.get_int("userid"))))
             std::cout << "Successfully removed a friend!\n";
@@ -338,7 +335,7 @@ public:
         return opt;
     }
 
-    void execute(const opt::Option& opt)
+    void execute(Session& session, const opt::Option& opt)
     {
         if (session.leaveGroup(qls::GroupID(opt.get_int("groupid"))))
             std::cout << "Successfully left a group!\n";
