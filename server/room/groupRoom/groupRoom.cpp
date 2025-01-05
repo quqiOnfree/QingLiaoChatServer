@@ -46,10 +46,19 @@ struct GroupRoomImpl
     std::shared_mutex       m_message_queue_mutex;
 };
 
+void GroupRoomImplDeleter::operator()(GroupRoomImpl *gri)
+{
+    local_sync_group_room_pool.deallocate(gri, sizeof(GroupRoomImpl));
+}
+
 // GroupRoom
 GroupRoom::GroupRoom(GroupID group_id, UserID administrator, bool is_create):
-    m_impl([](GroupRoomImpl* gi){ new(gi) GroupRoomImpl(); return gi; }(
-        static_cast<GroupRoomImpl*>(local_sync_group_room_pool.allocate(sizeof(GroupRoomImpl)))))
+    TextDataRoom(&local_sync_group_room_pool),
+    m_impl(
+        [](GroupRoomImpl* gi) {
+            new(gi) GroupRoomImpl(); return gi;
+            } (static_cast<GroupRoomImpl*>(
+                local_sync_group_room_pool.allocate(sizeof(GroupRoomImpl)))))
 {
     m_impl->m_group_id = group_id;
     m_impl->m_administrator_user_id = administrator;
@@ -144,9 +153,7 @@ void GroupRoom::sendMessage(UserID sender_user_id, std::string_view message)
     json["data"]["group_id"] = m_impl->m_group_id.getOriginValue();
     json["data"]["message"] = message;
 
-    auto returnJson = qjson::JWriter::fastWrite(json);
-
-    sendData(returnJson);
+    sendData(qjson::JWriter::fastWrite(json));
 }
 
 void GroupRoom::sendTipMessage(UserID sender_user_id,
@@ -242,11 +249,11 @@ void GroupRoom::getMessage(
 
     auto searchPoint = [this](
         const std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>& p,
-        bool edge = false) -> size_t {
+        bool edge = false) -> std::size_t {
         
-        size_t left = 0ull;
-        size_t right = m_impl->m_message_queue.size() - 1;
-        size_t middle = (left + right) / 2;
+        std::size_t left = 0ull;
+        std::size_t right = m_impl->m_message_queue.size() - 1;
+        std::size_t middle = (left + right) / 2;
         while (left < right - 1) {
             if (m_impl->m_message_queue[middle].first.time_since_epoch().count() ==
                 p.time_since_epoch().count())
@@ -276,8 +283,8 @@ void GroupRoom::getMessage(
         const std::pair<std::chrono::system_clock::time_point, MessageStructure>& b)
         {return a.first.time_since_epoch().count() < b.first.time_since_epoch().count();});
 
-    size_t from_itor = searchPoint(from, true);
-    size_t to_itor = searchPoint(to, false);
+    std::size_t from_itor = searchPoint(from, true);
+    std::size_t to_itor = searchPoint(to, false);
 
     qjson::JObject returnJson(qjson::JValueType::JList);
     for (auto i = from_itor; i <= to_itor; i++) {
@@ -555,11 +562,6 @@ void GroupRoom::removeThisRoom()
 bool GroupRoom::canBeUsed() const
 {
     return m_impl->m_can_be_used;
-}
-
-void GroupRoomImplDeleter::operator()(GroupRoomImpl *gri)
-{
-    local_sync_group_room_pool.deallocate(gri, sizeof(GroupRoomImpl));
 }
 
 } // namespace qls

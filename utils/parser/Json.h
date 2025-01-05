@@ -67,8 +67,8 @@ namespace qjson
         friend bool operator==(const JObject& joa, const JObject& jo);
         friend bool operator==(const JObject& jo, JValueType type);
 
-        const JObject& operator[](size_t itor) const;
-        JObject& operator[](size_t itor);
+        const JObject& operator[](std::size_t itor) const;
+        JObject& operator[](std::size_t itor);
         const JObject& operator[](int itor) const;
         JObject& operator[](int itor);
         const JObject& operator[](const char* str) const;
@@ -125,15 +125,15 @@ namespace qjson
          * @param data The JSON data to parse.
          * @return The parsed JSON object.
          */
-        static JObject fastParse(const std::string_view data);
+        static JObject fastParse(std::string_view data);
 
     protected:
-        JObject _parse(std::string_view data, size_t& itor);
-        void skipSpace(std::string_view data, size_t& itor, long long& error_line);
-        std::string getString(std::string_view data, size_t& itor, long long error_line);
-        JObject getNumber(std::string_view data, size_t& itor, long long error_line);
-        JObject getBool(std::string_view data, size_t& itor, long long error_line);
-        JObject getNull(std::string_view data, size_t& itor, long long error_line);
+        JObject parse_(std::string_view data, std::size_t data_size, std::size_t& itor);
+        void skipSpace(std::string_view data, std::size_t data_size, std::size_t& itor, long long& error_line);
+        std::string getString(std::string_view data, std::size_t data_size, std::size_t& itor, long long error_line);
+        JObject getNumber(std::string_view data, std::size_t data_size, std::size_t& itor, long long error_line);
+        JObject getBool(std::string_view data, std::size_t data_size, std::size_t& itor, long long error_line);
+        JObject getNull(std::string_view data, std::size_t data_size, std::size_t& itor, long long error_line);
         std::string getLogicErrorString(long long error_line);
     };
 
@@ -159,29 +159,21 @@ namespace qjson
          * @param n The indentation level.
          * @return The formatted JSON data as a string.
          */
-        std::string formatWrite(const JObject& jo, size_t n = 1);
+        std::string formatWrite(const JObject& jo, std::size_t indent = 4, std::size_t n = 1);
 
         /**
          * @brief Quickly writes a JSON object to a string.
          * @param jo The JSON object to write.
          * @return The JSON data as a string.
          */
-        static std::string fastWrite(const JObject& jo)
-        {
-            static JWriter jw;
-            return std::move(jw.write(jo) + '\n');
-        }
+        static std::string fastWrite(const JObject& jo);
 
         /**
          * @brief Quickly writes a formatted JSON object to a string.
          * @param jo The JSON object to write.
          * @return The formatted JSON data as a string.
          */
-        static std::string fastFormatWrite(const JObject& jo)
-        {
-            static JWriter jw;
-            return std::move(jw.formatWrite(jo) + '\n');
-        }
+        static std::string fastFormatWrite(const JObject& jo, std::size_t indent = 4);
     };
 }
 
