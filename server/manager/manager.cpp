@@ -5,7 +5,6 @@
 #include <Ini.h>
 
 #include "user.h"
-#include "dataPackage.h"
 #include "qls_error.h"
 
 extern qini::INIObject serverIni;

@@ -1,6 +1,5 @@
 #include "dataManager.h"
 
-#include <SQLProcess.hpp>
 #include "manager.h"
 
 // manager

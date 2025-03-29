@@ -6,7 +6,6 @@
 #include <Json.h>
 
 #include "userid.hpp"
-#include "groupid.hpp"
 
 namespace qls
 {

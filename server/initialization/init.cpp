@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include "SQLProcess.hpp"
 #include "manager.h"
 #include "networkEndianness.hpp"
 #include "input.h"

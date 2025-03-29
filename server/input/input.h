@@ -1,7 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <string>
+#include <string_view>
 #include <memory>
 
 class InputImpl;

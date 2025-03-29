@@ -36,6 +36,9 @@ public:
         // Unlock the lock to keep speedy of the process
         lock.unlock();
 
+        if (!allow)
+            return false;
+
         // Get global token
         double local_global_token = m_global_token.load();
         // Update global tokens of bucket

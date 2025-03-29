@@ -1,36 +1,23 @@
 #ifndef DEFINITION_HPP
 #define DEFINITION_HPP
 
-#ifdef _MSC_VER
-    #include <format>
-    #include <filesystem>
-    #ifdef _HAS_CXX23
-        #include <stacktrace>
-        #define ERROR_WITH_STACKTRACE(errmsg) std::format("error: {}\nin file \"{}\" line {}\nstack trace: \n{}\n", \
-            errmsg, std::filesystem::path(__FILE__).filename().string(), __LINE__, std::to_string(std::stacktrace::current()))
-    #else
-        #define ERROR_WITH_STACKTRACE(errmsg) std::format("error: {}\nin file \"{}\" line {}\n", \
-            errmsg, std::filesystem::path(__FILE__).filename().string(), __LINE__)
-    #endif // !_HAS_CXX23
-
-#else // !_MSC_VER
-    #include <format>
-    #include <filesystem>
-    #include <stacktrace>
-    #if defined(__cplusplus) && __cplusplus >= 202011L && defined(__cpp_lib_stacktrace)
-        #define ERROR_WITH_STACKTRACE(errmsg) std::format("error: {}\nin file \"{}\" line {}\nstack trace: \n{}\n", \
-            errmsg, std::filesystem::path(__FILE__).filename().string(), __LINE__, std::to_string(std::stacktrace::current()))
-    #else
-        #define ERROR_WITH_STACKTRACE(errmsg) std::format("error: {}\nin file \"{}\" line {}\n", \
-            errmsg, std::filesystem::path(__FILE__).filename().string(), __LINE__)
-    #endif // !defined(__cplusplus) && __cplusplus >= 202011L && defined(__cpp_lib_stacktrace)
-#endif // !_MSC_VER
-
-#include <unordered_map>
-#include <string>
+#include <format>
+#include <stacktrace>
+#include <source_location>
 #include <string_view>
-#include <utility>
-#include <cstdint>
+#include <string>
+
+#define ERROR_WITH_STACKTRACE(errmsg) \
+    [](std::string_view err, std::source_location location = std::source_location::current()) { \
+        return std::format("error: {}\nin file \"{}\" line {}, function \"{}\"\nstack trace: \n{}\n", \
+            err, \
+            location.file_name(), \
+            location.line(), \
+            location.function_name(), \
+            std::to_string(std::stacktrace::current())); \
+        }(errmsg)
+
+#include <xhash>
 #include <cstddef>
 
 #include "groupid.hpp"
