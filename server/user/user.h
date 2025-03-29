@@ -4,18 +4,14 @@
 #include <string>
 #include <string_view>
 #include <memory>
-#include <vector>
 #include <unordered_map>
 #include <map>
 #include <unordered_set>
-#include <shared_mutex>
 #include <string>
 
 #include "groupid.hpp"
 #include "userid.hpp"
-#include "socket.h"
 #include "definition.hpp"
-#include "qls_error.h"
 #include "connection.hpp"
 
 namespace qls

@@ -6,11 +6,11 @@
 #include <Json.h>
 
 #include "userid.hpp"
-#include "definition.hpp"
 #include "manager.h"
 #include "returnStateMessage.hpp"
 #include "JsonMsgProcess.h"
 #include "qls_error.h"
+#include "package.h"
 
 extern Log::Logger serverLogger;
 extern qls::Manager serverManager;

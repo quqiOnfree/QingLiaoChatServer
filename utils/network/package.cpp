@@ -2,6 +2,7 @@
 
 #include <system_error>
 #include <cstring>
+#include <cstdint>
 
 #include "networkEndianness.hpp"
 #include "qls_error.h"

@@ -8,7 +8,6 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <concepts>
 
 #include "ossl_proxy.hpp"
 
@@ -60,6 +59,7 @@ namespace qls
             digest_context_ = md.digest_context_;
             md.digest_context_ = nullptr;
             md.message_digest_ = nullptr;
+            return *this;
         }
 
         ~md_proxy() noexcept

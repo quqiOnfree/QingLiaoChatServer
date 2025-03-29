@@ -6,9 +6,10 @@
 #include <Json.h>
 #include <Ini.h>
 
+#include "package.h"
 #include "socketFunctions.h"
 #include "definition.hpp"
-#include "socket.h"
+#include "socket.hpp"
 #include "manager.h"
 #include "qls_error.h"
 #include "connection.hpp"
@@ -99,7 +100,7 @@ awaitable<void> qls::Network::echo(ip::tcp::socket origin_socket)
 
     // Check socket
     if (!m_rateLimiter.allow_connection(origin_socket.remote_endpoint().address())) {
-        std::error_code ec;
+        [[maybe_unused]] std::error_code ec;
         origin_socket.close(ec);
         // serverLogger.warning('[', origin_socket.remote_endpoint().address().to_string(), "] is seemly attacking the server!");
         co_return;

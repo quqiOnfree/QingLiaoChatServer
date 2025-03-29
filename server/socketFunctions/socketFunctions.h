@@ -2,15 +2,9 @@
 #define SOCKET_FUNCTIONS_H
 
 #include <asio.hpp>
-#include <unordered_map>
-#include <shared_mutex>
-#include <atomic>
 #include <memory>
 
 #include "dataPackage.h"
-#include "package.h"
-#include "network.h"
-#include "socket.h"
 #include "connection.hpp"
 
 namespace qls

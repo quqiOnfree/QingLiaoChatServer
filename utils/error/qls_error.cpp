@@ -96,7 +96,7 @@ std::string qls_error_category::message(int Errval) const
     return "unknown error";
 }
 
-constexpr qls_error_category QLSErrCategory;
+static qls_error_category QLSErrCategory;
 
 std::error_code qls::make_error_code(qls::qls_errc errc) noexcept
 {

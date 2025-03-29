@@ -177,7 +177,14 @@ protected:
     {
         auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         std::stringstream ss;
+#ifdef _MSC_VER
+        std::tm local_tm = {};
+        if (::localtime_s(&local_tm, &t))
+            throw std::runtime_error("Could not get the ctime tm.");
+        ss << std::put_time(&local_tm, "%Y-%m-%d.log");
+#else
         ss << std::put_time(std::localtime(&t), "%Y-%m-%d.log");
+#endif
         return ss.str();
     }
 
@@ -189,7 +196,14 @@ protected:
     {
         auto t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         std::stringstream ss;
+#ifdef _MSC_VER
+        std::tm local_tm = {};
+        if (::localtime_s(&local_tm, &t))
+            throw std::runtime_error("Could not get the ctime tm.");
+        ss << std::put_time(&local_tm, "[%H:%M:%S]");
+#else
         ss << std::put_time(std::localtime(&t), "[%H:%M:%S]");
+#endif
         return ss.str();
     }
 

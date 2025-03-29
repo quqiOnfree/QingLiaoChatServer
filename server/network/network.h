@@ -4,19 +4,12 @@
 #include <asio.hpp>
 #include <asio/ssl.hpp>
 #include <thread>
-#include <chrono>
 #include <functional>
-#include <mutex>
-#include <shared_mutex>
-#include <condition_variable>
 #include <string>
 #include <memory>
 #include <memory_resource>
 
-#include "definition.hpp"
-#include "package.h"
-#include "dataPackage.h"
-#include "socket.h"
+#include "socket.hpp"
 #include "rateLimiter.hpp"
 
 namespace qls

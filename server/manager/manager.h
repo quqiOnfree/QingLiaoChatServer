@@ -3,10 +3,6 @@
 
 #include <memory>
 #include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <shared_mutex>
-#include <atomic>
 
 #include "userid.hpp"
 #include "groupid.hpp"
@@ -15,7 +11,6 @@
 #include "privateRoom.h"
 #include "groupRoom.h"
 #include "user.h"
-#include "socket.h"
 #include "verificationManager.h"
 #include "dataManager.h"
 #include "connection.hpp"

@@ -1,12 +1,11 @@
 #ifndef JSON_MESSAGE_PROCESS_H
 #define JSON_MESSAGE_PROCESS_H
 
-#include <string>
-#include <map>
 #include <asio.hpp>
 #include <Json.h>
 #include <memory>
 
+#include "userid.hpp"
 #include "socketFunctions.h"
 
 namespace qls

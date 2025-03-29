@@ -11,7 +11,7 @@ namespace qls
 /// @return True if it is big endianness
 [[nodiscard]] inline bool isBigEndianness()
 {
-    constexpr union u_data
+    union u_data
     {
         unsigned char   a;
         unsigned int    b = 0x12345678;

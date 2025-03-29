@@ -1,7 +1,7 @@
 #ifndef GROUP_IDENTIFICATION
 #define GROUP_IDENTIFICATION
 
-#include <unordered_map>
+#include <xhash>
 
 namespace qls
 {
@@ -48,17 +48,17 @@ public:
 
     friend bool operator==(const GroupID& g1, const GroupID& g2) noexcept
     {
-        return g1.m_group_id == g1.m_group_id;
+        return g1.m_group_id == g2.m_group_id;
     }
 
     friend bool operator!=(const GroupID& g1, const GroupID& g2) noexcept
     {
-        return g1.m_group_id != g1.m_group_id;
+        return g1.m_group_id != g2.m_group_id;
     }
 
     friend bool operator<(const GroupID& g1, const GroupID& g2) noexcept
     {
-        return g1.m_group_id < g1.m_group_id;
+        return g1.m_group_id < g2.m_group_id;
     }
 
     constexpr operator long long() const noexcept

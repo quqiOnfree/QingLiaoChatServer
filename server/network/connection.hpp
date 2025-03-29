@@ -2,7 +2,7 @@
 #define CONNECTION_HPP
 
 #include <asio.hpp>
-#include "Socket.h"
+#include "socket.hpp"
 
 namespace qls
 {
@@ -22,7 +22,7 @@ struct Connection
 
     ~Connection()
     {
-        std::error_code ec;
+        [[maybe_unused]] std::error_code ec;
         socket.shutdown(ec);
     }
 };

@@ -20,7 +20,6 @@ endif()
 add_library(Utils 
     network/dataPackage.cpp
     network/package.cpp
-    network/socket.cpp
     error/qls_error.cpp
     parser/Ini.cpp
     parser/Json.cpp)

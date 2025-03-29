@@ -32,6 +32,7 @@ namespace qls
                 OSSL_LIB_CTX_free(library_context_);
             library_context_ = o.library_context_;
             o.library_context_ = nullptr;
+            return *this;
         }
 
         ~ossl_proxy() noexcept
