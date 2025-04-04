@@ -136,7 +136,8 @@ public:
         std::pmr::polymorphic_allocator<PrintTask<Args...>> allocator{&this->m_memory_resouce};
         auto ptr = allocator.allocate(1);
         allocator.construct(ptr, this, mode, std::make_tuple(std::move(args)...));
-        std::unique_ptr<PrintTask<Args...>, BasePrintTaskDeleter> task_ptr(ptr, PrintTaskDeleter<Args...>{this});
+        std::unique_ptr<PrintTask<Args...>, PrintTaskDeleter> task_ptr(
+            ptr, PrintTaskDeleter{this, sizeof(PrintTask<Args...>)});
 
         std::unique_lock lock(m_mutex);
         m_msgQueue.emplace(std::move(task_ptr));
@@ -217,24 +218,14 @@ protected:
         }
     };
 
-    struct BasePrintTaskDeleter
-    {
-        virtual void operator()(BasePrintTask* ptr) {}
-        virtual ~BasePrintTaskDeleter() noexcept = default;
-    };
-
-    template<class... Args>
-    struct PrintTaskDeleter: public BasePrintTaskDeleter
+    struct PrintTaskDeleter
     {
         Logger* this_logger;
+        std::size_t size;
 
-        PrintTaskDeleter(Logger* l):
-            this_logger(l)
-        {}
-
-        virtual void operator()(BasePrintTask* ptr) override
+        void operator()(BasePrintTask* ptr)
         {
-            this_logger->m_memory_resouce.deallocate(ptr, sizeof(PrintTask<Args...>));
+            this_logger->m_memory_resouce.deallocate(ptr, size);
         }
     };
 
@@ -313,7 +304,7 @@ private:
     std::condition_variable                     m_cv;
     std::mutex                                  m_mutex;
     std::atomic<bool>                           m_isRunning;
-    std::queue<std::unique_ptr<BasePrintTask, BasePrintTaskDeleter>>
+    std::queue<std::unique_ptr<BasePrintTask, PrintTaskDeleter>>
                                                 m_msgQueue;
     std::thread                                 m_thread;
     std::pmr::synchronized_pool_resource        m_memory_resouce;
