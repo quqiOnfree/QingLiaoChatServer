@@ -513,13 +513,14 @@ bool User::leaveGroup(GroupID group_id)
     auto group = serverManager.getGroupRoom(group_id);
     if (!group->removeMember(self_id) || group->getAdministrator() == self_id)
         return false;
-    auto list = group->getOperatorList();
 
     qjson::JObject json;
     json["type"] = "group_leave_member";
     json["data"]["user_id"] = self_id.getOriginValue();
     json["data"]["group_id"] = group_id.getOriginValue();
 
+    auto list = group->getOperatorList();
+    sendJsonToUser(group->getAdministrator(), json);
     for (const auto& i : list) {
         sendJsonToUser(i, json);
     }
