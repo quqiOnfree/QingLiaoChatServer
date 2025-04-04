@@ -5,6 +5,7 @@
 #include <asio.hpp>
 #include <memory_resource>
 
+#include "Json.h"
 #include "manager.h"
 #include "logger.hpp"
 #include "qls_error.h"
@@ -85,17 +86,8 @@ static inline void sendJsonToUser(qls::UserID user_id, T&& json)
 
 User::User(UserID user_id, bool is_create):
     // allocate and construct the pointer of implement
-    m_impl([](){
-        std::pmr::polymorphic_allocator<UserImpl> allocator{&local_user_sync_pool};
-        auto ptr = allocator.allocate(1);
-        try {
-            allocator.construct(ptr);
-        } catch (...) {
-            allocator.deallocate(ptr, 1);
-            throw;
-        }
-        return ptr;
-    }())
+    m_impl(std::pmr::polymorphic_allocator<>(
+        &local_user_sync_pool).new_object<UserImpl>())
 {
     m_impl->user_id = user_id;
     m_impl->age = 0;
@@ -430,21 +422,20 @@ bool User::addGroup(GroupID group_id)
             return false;
 
     auto& ver = serverManager.getServerVerificationManager();
-    if (!ver.hasGroupRoomVerification(group_id, self_id)) {
-        ver.addGroupRoomVerification(group_id, self_id);
-        if (!ver.setGroupRoomUserVerified(group_id, self_id))
-            return false;
+    if (ver.hasGroupRoomVerification(group_id, self_id))
+        return false;
 
-        UserID adminID = serverManager.getGroupRoom(group_id)->getAdministrator();
-        qjson::JObject json(qjson::JValueType::JDict);
-        json["groupid"] = group_id.getOriginValue();
-        json["userid"] = self_id.getOriginValue();
-        json["type"] = "added_group_verification";
-        json["message"] = "";
-        sendJsonToUser(adminID, std::move(json));
-        return true;
-    }
-    else return false;
+    ver.addGroupRoomVerification(group_id, self_id);
+    bool _ = ver.setGroupRoomUserVerified(group_id, self_id);
+
+    UserID adminID = serverManager.getGroupRoom(group_id)->getAdministrator();
+    qjson::JObject json(qjson::JValueType::JDict);
+    json["groupid"] = group_id.getOriginValue();
+    json["userid"] = self_id.getOriginValue();
+    json["type"] = "added_group_verification";
+    json["message"] = "";
+    sendJsonToUser(adminID, std::move(json));
+    return true;
 }
 
 GroupID User::createGroup()
@@ -508,6 +499,29 @@ bool User::removeGroup(GroupID group_id)
         serverManager.removeGroupRoom(group_id);
     } catch(...) {
         return false;
+    }
+    return true;
+}
+
+bool User::leaveGroup(GroupID group_id)
+{
+    UserID self_id = this->getUserID();
+
+    if (!serverManager.hasGroupRoom(group_id))
+        return false;
+
+    auto group = serverManager.getGroupRoom(group_id);
+    if (!group->removeMember(self_id) || group->getAdministrator() == self_id)
+        return false;
+    auto list = group->getOperatorList();
+
+    qjson::JObject json;
+    json["type"] = "group_leave_member";
+    json["data"]["user_id"] = self_id.getOriginValue();
+    json["data"]["group_id"] = group_id.getOriginValue();
+
+    for (const auto& i : list) {
+        sendJsonToUser(i, json);
     }
     return true;
 }

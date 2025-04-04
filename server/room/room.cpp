@@ -1,12 +1,10 @@
 #include "room.h"
 
-#include <exception>
 #include <unordered_map>
 #include <mutex>
 #include <shared_mutex>
 #include <memory>
 
-#include "Json.h"
 #include "dataPackage.h"
 #include "manager.h"
 #include "logger.hpp"
@@ -40,18 +38,8 @@ void TCPRoomImplDeleter::operator()(TCPRoomImpl* mem_pointer) noexcept
 }
 
 TCPRoom::TCPRoom(std::pmr::memory_resource *mr):
-    m_impl([mr]() {
-            std::pmr::polymorphic_allocator<TCPRoomImpl> allocator{mr};
-            auto ptr = allocator.allocate(1);
-            try {
-                allocator.construct(ptr, mr);
-            } catch (...) {
-                allocator.deallocate(ptr, 1);
-                throw;
-            }
-            return ptr;
-            }(),
-        {mr}) {}
+    m_impl(std::pmr::polymorphic_allocator<>(
+        mr).new_object<TCPRoomImpl>(mr)) {}
 
 TCPRoom::~TCPRoom() noexcept = default;
 
@@ -120,18 +108,8 @@ struct KCPRoomImpl
 };
 
 KCPRoom::KCPRoom(std::pmr::memory_resource *mr):
-    m_impl([mr]() {
-            std::pmr::polymorphic_allocator<KCPRoomImpl> allocator{mr};
-            auto ptr = allocator.allocate(1);
-            try {
-                allocator.construct(ptr, mr);
-            } catch (...) {
-                allocator.deallocate(ptr, 1);
-                throw;
-            }
-            return ptr;
-            }(),
-        {mr}) {}
+    m_impl(std::pmr::polymorphic_allocator<>(
+        mr).new_object<KCPRoomImpl>(mr)) {}
 
 void KCPRoomImplDeleter::operator()(KCPRoomImpl* mem_pointer) noexcept
 {

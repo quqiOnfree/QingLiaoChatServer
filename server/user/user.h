@@ -112,6 +112,7 @@ public:
     bool    acceptGroup(GroupID group_id, UserID user_id);
     bool    rejectGroup(GroupID group_id, UserID user_id);
     bool    removeGroup(GroupID group_id);
+    bool    leaveGroup(GroupID group_id);
 
     /**
      * @brief Retrieves the list of group verification entries.

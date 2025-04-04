@@ -216,7 +216,7 @@ bool VerificationManager::setGroupRoomGroupVerified(GroupID group_id, UserID use
 
     if (result)
     {
-        serverManager.getGroupRoom(group_id)->addMember(user_id);
+        auto _ = serverManager.getGroupRoom(group_id)->addMember(user_id);
 
         // 更新user的groupList
         auto ptr = serverManager.getUser(user_id);
@@ -244,7 +244,7 @@ bool VerificationManager::setGroupRoomUserVerified(GroupID group_id, UserID user
 
     if (result)
     {
-        serverManager.getGroupRoom(group_id)->addMember(user_id);
+        auto _ = serverManager.getGroupRoom(group_id)->addMember(user_id);
 
         // 更新user的friendlist
         {

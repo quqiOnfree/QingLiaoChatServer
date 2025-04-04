@@ -133,14 +133,8 @@ public:
         requires ((StreamType<Args>) && ...)
     void print(LogMode mode, Args... args)
     {
-        std::pmr::polymorphic_allocator<PrintTask<Args...>> allocator{&this->m_memory_resouce};
-        auto ptr = allocator.allocate(1);
-        try {
-            allocator.construct(ptr, this, mode, std::make_tuple(std::move(args)...));
-        } catch (...) {
-            allocator.deallocate(ptr, 1);
-            throw;
-        }
+        std::pmr::polymorphic_allocator<> allocator{&this->m_memory_resouce};
+        auto ptr = allocator.new_object<PrintTask<Args...>>(this, mode, std::make_tuple(std::move(args)...));
         std::unique_ptr<PrintTask<Args...>, PrintTaskDeleter> task_ptr(
             ptr, PrintTaskDeleter{this, sizeof(PrintTask<Args...>)});
 

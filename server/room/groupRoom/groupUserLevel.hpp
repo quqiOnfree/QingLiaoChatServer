@@ -67,7 +67,7 @@ public:
         return true;
     }
 
-    int getValue() const
+    [[nodiscard]] int getValue() const
     {
         std::shared_lock<std::shared_mutex> lock(m_value_mutex);
         return m_value;

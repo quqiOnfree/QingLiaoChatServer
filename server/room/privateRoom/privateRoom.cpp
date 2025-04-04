@@ -40,17 +40,9 @@ void PrivateRoomImplDeleter::operator()(PrivateRoomImpl* pri) noexcept
 // PrivateRoom
 PrivateRoom::PrivateRoom(UserID user_id_1, UserID user_id_2, bool is_create):
     TextDataRoom(&local_sync_private_room_pool),
-    m_impl([](UserID user_id_1, UserID user_id_2) {
-            std::pmr::polymorphic_allocator<PrivateRoomImpl> allocator{&local_sync_private_room_pool};
-            auto ptr = allocator.allocate(1);
-            try {
-                allocator.construct(ptr, user_id_1, user_id_2);
-            } catch (...) {
-                allocator.deallocate(ptr, 1);
-                throw;
-            }
-            return ptr;
-            }(user_id_1, user_id_2))
+    m_impl(std::pmr::polymorphic_allocator<>(
+        &local_sync_private_room_pool)
+        .new_object<PrivateRoomImpl>(user_id_1, user_id_2))
 {
     if (is_create) {
         // sql 创建private room

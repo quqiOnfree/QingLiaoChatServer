@@ -35,38 +35,38 @@ public:
     GroupRoom(GroupRoom&&) = delete;
     ~GroupRoom() noexcept;
 
-    bool addMember(UserID user_id);
-    bool hasMember(UserID user_id) const;
-    bool removeMember(UserID user_id);
+    [[nodiscard]] bool addMember(UserID user_id);
+    [[nodiscard]] bool hasMember(UserID user_id) const;
+    [[nodiscard]] bool removeMember(UserID user_id);
     
     void sendMessage(UserID sender_user_id, std::string_view message);
     void sendTipMessage(UserID sender_user_id, std::string_view message);
     void sendUserTipMessage(UserID sender_user_id, std::string_view, UserID receiver_user_id);
-    std::vector<MessageResult> getMessage(
+    [[nodiscard]] std::vector<MessageResult> getMessage(
         const std::chrono::utc_clock::time_point& from,
         const std::chrono::utc_clock::time_point& to);
 
-    bool                                    hasUser(UserID user_id) const;
-    std::unordered_map<UserID,
+    [[nodiscard]] bool                                    hasUser(UserID user_id) const;
+    [[nodiscard]] std::unordered_map<UserID,
         UserDataStructure>                  getUserList() const;
-    std::string                             getUserNickname(UserID user_id) const;
-    long long                               getUserGroupLevel(UserID user_id) const;
-    std::unordered_map<UserID, PermissionType>
+    [[nodiscard]] std::string                             getUserNickname(UserID user_id) const;
+    [[nodiscard]] long long                               getUserGroupLevel(UserID user_id) const;
+    [[nodiscard]] std::unordered_map<UserID, PermissionType>
                                             getUserPermissionList() const;
-    UserID                                  getAdministrator() const;
-    GroupID                                 getGroupID() const;
-    std::vector<UserID>                     getDefaultUserList() const;
-    std::vector<UserID>                     getOperatorList() const;
+    [[nodiscard]] UserID                                  getAdministrator() const;
+    [[nodiscard]] GroupID                                 getGroupID() const;
+    [[nodiscard]] std::vector<UserID>                     getDefaultUserList() const;
+    [[nodiscard]] std::vector<UserID>                     getOperatorList() const;
     
-    bool muteUser(UserID executor_id, UserID user_id, const std::chrono::minutes& mins);
-    bool unmuteUser(UserID executor_id, UserID user_id);
-    bool kickUser(UserID executor_id, UserID user_id);
-    bool addOperator(UserID executor_id, UserID user_id);
-    bool removeOperator(UserID executor_id, UserID user_id);
+    [[nodiscard]] bool muteUser(UserID executor_id, UserID user_id, const std::chrono::minutes& mins);
+    [[nodiscard]] bool unmuteUser(UserID executor_id, UserID user_id);
+    [[nodiscard]] bool kickUser(UserID executor_id, UserID user_id);
+    [[nodiscard]] bool addOperator(UserID executor_id, UserID user_id);
+    [[nodiscard]] bool removeOperator(UserID executor_id, UserID user_id);
     void setAdministrator(UserID user_id);
 
     void removeThisRoom();
-    bool canBeUsed() const;
+    [[nodiscard]] bool canBeUsed() const;
 
     asio::awaitable<void> auto_clean();
     void stop_cleaning();

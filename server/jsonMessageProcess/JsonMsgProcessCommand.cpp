@@ -268,7 +268,9 @@ qjson::JObject RemoveGroupCommand::execute(UserID executor, qjson::JObject param
 qjson::JObject LeaveGroupCommand::execute(UserID executor, qjson::JObject parameters)
 {
     GroupID group_id = GroupID(parameters["group_id"].getInt());
-    return makeErrorMessage("This function is incomplete.");
+    if (!serverManager.getUser(executor)->leaveGroup(group_id))
+        return makeErrorMessage("Failed to leave a group!");
+    return makeSuccessMessage("Successfully left a group!");
 }
 
 } // namespace qls

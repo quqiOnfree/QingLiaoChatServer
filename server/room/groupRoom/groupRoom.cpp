@@ -55,17 +55,8 @@ void GroupRoomImplDeleter::operator()(GroupRoomImpl *gri)
 // GroupRoom
 GroupRoom::GroupRoom(GroupID group_id, UserID administrator, bool is_create):
     TextDataRoom(&local_sync_group_room_pool),
-    m_impl([]() {
-                std::pmr::polymorphic_allocator<GroupRoomImpl> allocator{&local_sync_group_room_pool};
-                auto ptr = allocator.allocate(1);
-                try {
-                    allocator.construct(ptr);
-                } catch (...) {
-                    allocator.deallocate(ptr, 1);
-                    throw;
-                }
-                return ptr;
-            }())
+    m_impl(std::pmr::polymorphic_allocator<>(
+        &local_sync_group_room_pool).new_object<GroupRoomImpl>())
 {
     m_impl->m_group_id = group_id;
     m_impl->m_administrator_user_id = administrator;

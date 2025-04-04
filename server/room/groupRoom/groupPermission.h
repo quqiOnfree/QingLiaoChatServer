@@ -49,13 +49,13 @@ public:
      * @param permissionName Name of the permission.
      * @return PermissionType Type of the permission.
      */
-    PermissionType getPermissionType(std::string_view permissionName) const;
+     [[nodiscard]] PermissionType getPermissionType(std::string_view permissionName) const;
 
     /**
      * @brief Retrieves the entire permission list.
      * @return std::unordered_map<std::string, PermissionType> Map of permissions and their types.
      */
-    std::unordered_map<std::string, PermissionType, string_hash, std::equal_to<>> getPermissionList() const;
+     [[nodiscard]] std::unordered_map<std::string, PermissionType, string_hash, std::equal_to<>> getPermissionList() const;
 
     /**
      * @brief Modifies the permission type for a specific user.
@@ -76,38 +76,38 @@ public:
      * @param permissionName Name of the permission.
      * @return true if user has the permission, false otherwise.
      */
-    bool userHasPermission(UserID user_id, std::string_view permissionName) const;
+     [[nodiscard]] bool userHasPermission(UserID user_id, std::string_view permissionName) const;
 
     /**
      * @brief Retrieves the permission type for a specific user.
      * @param user_id ID of the user.
      * @return PermissionType Type of permission for the user.
      */
-    PermissionType getUserPermissionType(UserID user_id) const;
+     [[nodiscard]] PermissionType getUserPermissionType(UserID user_id) const;
 
     /**
      * @brief Retrieves the entire user permission list.
      * @return std::unordered_map<UserID, PermissionType> Map of users and their permission types.
      */
-    std::unordered_map<UserID, PermissionType> getUserPermissionList() const;
+     [[nodiscard]] std::unordered_map<UserID, PermissionType> getUserPermissionList() const;
 
     /**
      * @brief Retrieves a list of users with default permissions.
      * @return std::vector<UserID> List of user IDs.
      */
-    std::vector<UserID> getDefaultUserList() const;
+     [[nodiscard]] std::vector<UserID> getDefaultUserList() const;
 
     /**
      * @brief Retrieves a list of users with operator permissions.
      * @return std::vector<UserID> List of user IDs.
      */
-    std::vector<UserID> getOperatorList() const;
+     [[nodiscard]] std::vector<UserID> getOperatorList() const;
 
     /**
      * @brief Retrieves a list of users with administrator permissions.
      * @return std::vector<UserID> List of user IDs.
      */
-    std::vector<UserID> getAdministratorList() const;
+     [[nodiscard]] std::vector<UserID> getAdministratorList() const;
 
 private:
     std::unordered_map<std::string, PermissionType, string_hash, std::equal_to<>>
