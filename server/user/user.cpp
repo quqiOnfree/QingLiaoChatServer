@@ -85,8 +85,17 @@ static inline void sendJsonToUser(qls::UserID user_id, T&& json)
 
 User::User(UserID user_id, bool is_create):
     // allocate and construct the pointer of implement
-    m_impl([](UserImpl* ui){ new(ui) UserImpl(); return ui; }(
-        static_cast<UserImpl*>(local_user_sync_pool.allocate(sizeof(UserImpl)))))
+    m_impl([](){
+        std::pmr::polymorphic_allocator<UserImpl> allocator{&local_user_sync_pool};
+        auto ptr = allocator.allocate(1);
+        try {
+            allocator.construct(ptr);
+        } catch (...) {
+            allocator.deallocate(ptr, 1);
+            throw;
+        }
+        return ptr;
+    }())
 {
     m_impl->user_id = user_id;
     m_impl->age = 0;

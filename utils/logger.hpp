@@ -135,7 +135,12 @@ public:
     {
         std::pmr::polymorphic_allocator<PrintTask<Args...>> allocator{&this->m_memory_resouce};
         auto ptr = allocator.allocate(1);
-        allocator.construct(ptr, this, mode, std::make_tuple(std::move(args)...));
+        try {
+            allocator.construct(ptr, this, mode, std::make_tuple(std::move(args)...));
+        } catch (...) {
+            allocator.deallocate(ptr, 1);
+            throw;
+        }
         std::unique_ptr<PrintTask<Args...>, PrintTaskDeleter> task_ptr(
             ptr, PrintTaskDeleter{this, sizeof(PrintTask<Args...>)});
 
@@ -172,6 +177,8 @@ protected:
             mode(m),
             tuple(std::move(t))
         {}
+
+        virtual ~PrintTask() noexcept = default;
 
         template <typename Tuple, size_t... Is>
         static inline void printTupleImpl(const Tuple& t, std::index_sequence<Is...>)

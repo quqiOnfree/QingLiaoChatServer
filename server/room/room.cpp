@@ -1,5 +1,6 @@
 #include "room.h"
 
+#include <exception>
 #include <unordered_map>
 #include <mutex>
 #include <shared_mutex>
@@ -39,10 +40,17 @@ void TCPRoomImplDeleter::operator()(TCPRoomImpl* mem_pointer) noexcept
 }
 
 TCPRoom::TCPRoom(std::pmr::memory_resource *mr):
-    m_impl(
-        [mr](TCPRoomImpl* mem_pointer) {
-            new(mem_pointer) TCPRoomImpl(mr); return mem_pointer;
-            } (static_cast<TCPRoomImpl*>(mr->allocate(sizeof(TCPRoomImpl)))),
+    m_impl([mr]() {
+            std::pmr::polymorphic_allocator<TCPRoomImpl> allocator{mr};
+            auto ptr = allocator.allocate(1);
+            try {
+                allocator.construct(ptr, mr);
+            } catch (...) {
+                allocator.deallocate(ptr, 1);
+                throw;
+            }
+            return ptr;
+            }(),
         {mr}) {}
 
 TCPRoom::~TCPRoom() noexcept = default;
@@ -112,10 +120,17 @@ struct KCPRoomImpl
 };
 
 KCPRoom::KCPRoom(std::pmr::memory_resource *mr):
-    m_impl(
-        [mr](KCPRoomImpl* mem_pointer) {
-            new(mem_pointer) KCPRoomImpl(mr); return mem_pointer;
-            } (static_cast<KCPRoomImpl*>(mr->allocate(sizeof(KCPRoomImpl)))),
+    m_impl([mr]() {
+            std::pmr::polymorphic_allocator<KCPRoomImpl> allocator{mr};
+            auto ptr = allocator.allocate(1);
+            try {
+                allocator.construct(ptr, mr);
+            } catch (...) {
+                allocator.deallocate(ptr, 1);
+                throw;
+            }
+            return ptr;
+            }(),
         {mr}) {}
 
 void KCPRoomImplDeleter::operator()(KCPRoomImpl* mem_pointer) noexcept
