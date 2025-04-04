@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <condition_variable>
+#include <memory>
 #include <thread>
 #include <mutex>
 #include <queue>
@@ -13,6 +14,9 @@
 #include <filesystem>
 #include <stdexcept>
 #include <functional>
+#include <tuple>
+#include <utility>
+#include <memory_resource>
 
 namespace Log
 {
@@ -53,11 +57,7 @@ public:
      */
     ~Logger()
     {
-        m_isRunning = false;
-        m_cv.notify_all();
-
-        if (m_thread.joinable())
-            m_thread.join();
+        join();
     }
 
     /**
@@ -133,10 +133,60 @@ public:
         requires ((StreamType<Args>) && ...)
     void print(LogMode mode, Args... args)
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_msgQueue.push(std::bind([mode = std::move(mode), this](auto&&... args) {
-            std::string modeString;
+        std::pmr::polymorphic_allocator<PrintTask<Args...>> allocator{&this->m_memory_resouce};
+        auto ptr = allocator.allocate(1);
+        allocator.construct(ptr, this, mode, std::make_tuple(std::move(args)...));
+        std::unique_ptr<PrintTask<Args...>, BasePrintTaskDeleter> task_ptr(ptr, PrintTaskDeleter<Args...>{this});
 
+        std::unique_lock lock(m_mutex);
+        m_msgQueue.emplace(std::move(task_ptr));
+        lock.unlock();
+        m_cv.notify_all();
+    }
+
+    void join()
+    {
+        m_isRunning = false;
+        m_cv.notify_all();
+        if (m_thread.joinable())
+            m_thread.join();
+    }
+
+protected:
+    struct BasePrintTask
+    {
+        virtual void operator()() = 0;
+        virtual ~BasePrintTask() noexcept = default;
+    };
+
+    template<class... Args>
+    struct PrintTask: public BasePrintTask
+    {
+        Logger*             this_logger;
+        LogMode             mode;
+        std::tuple<Args...> tuple;
+
+        PrintTask(Logger* l, LogMode m, std::tuple<Args...> t):
+            this_logger(l),
+            mode(m),
+            tuple(std::move(t))
+        {}
+
+        template <typename Tuple, size_t... Is>
+        static inline void printTupleImpl(const Tuple& t, std::index_sequence<Is...>)
+        {
+            ((std::cout << std::get<Is>(t)), ...);
+        }
+
+        template <typename Tuple, size_t... Is>
+        inline void writeTupleImpl(const Tuple& t, std::index_sequence<Is...>)
+        {
+            ((this_logger->m_file << std::get<Is>(t)), ...);
+        }
+
+        virtual void operator()() override
+        {
+            std::string modeString;
             switch (mode) {
             case Logger::LogMode::LogINFO:
                 modeString = "[INFO]";
@@ -158,17 +208,36 @@ public:
             }
 
             std::cout << generateTimeFormatString() << modeString;
-            ((std::cout << args), ...);
+            printTupleImpl(tuple, std::index_sequence_for<Args...>{});
             std::cout << '\n';
 
-            m_file << generateTimeFormatString() << modeString;
-            ((m_file << std::forward<decltype(args)>(args)), ...);
-            m_file << std::endl;
-            }, std::forward<Args>(args)...));
-        m_cv.notify_all();
-    }
+            this_logger->m_file << generateTimeFormatString() << modeString;
+            writeTupleImpl(tuple, std::index_sequence_for<Args...>{});
+            this_logger->m_file << std::endl;
+        }
+    };
 
-protected:
+    struct BasePrintTaskDeleter
+    {
+        virtual void operator()(BasePrintTask* ptr) {}
+        virtual ~BasePrintTaskDeleter() noexcept = default;
+    };
+
+    template<class... Args>
+    struct PrintTaskDeleter: public BasePrintTaskDeleter
+    {
+        Logger* this_logger;
+
+        PrintTaskDeleter(Logger* l):
+            this_logger(l)
+        {}
+
+        virtual void operator()(BasePrintTask* ptr) override
+        {
+            this_logger->m_memory_resouce.deallocate(ptr, sizeof(PrintTask<Args...>));
+        }
+    };
+
     /**
      * @brief Generates a formatted log file name based on current date.
      * @return Formatted log file name.
@@ -225,26 +294,29 @@ protected:
      */
     void workFunction()
     {
-        while (m_isRunning) {
+        while (true) {
             std::unique_lock<std::mutex> lock(m_mutex);
-            m_cv.wait(lock, [&]() {return !m_msgQueue.empty() || !m_isRunning; });
+            m_cv.wait(lock,
+                [&]() { return !m_msgQueue.empty() || !m_isRunning; });
             if (!m_isRunning && m_msgQueue.empty())
                 return;
             else if (m_msgQueue.empty())
                 continue;
-            std::function<void()> getFunc = std::move(m_msgQueue.front());
+            auto task = std::move(m_msgQueue.front());
             m_msgQueue.pop();
-            getFunc();
+            std::invoke(*task);
         }
     }
 
 private:
-    std::ofstream                       m_file;         /**< Log file stream */
-    std::condition_variable             m_cv;           /**< Condition variable for thread synchronization */
-    std::mutex                          m_mutex;        /**< Mutex for protecting shared resources */
-    std::atomic<bool>                   m_isRunning;    /**< Atomic flag for controlling thread termination */
-    std::queue<std::function<void()>>   m_msgQueue;     /**< Queue for storing log message functions */
-    std::thread                         m_thread;       /**< Thread for asynchronous logging */
+    std::ofstream                               m_file;
+    std::condition_variable                     m_cv;
+    std::mutex                                  m_mutex;
+    std::atomic<bool>                           m_isRunning;
+    std::queue<std::unique_ptr<BasePrintTask, BasePrintTaskDeleter>>
+                                                m_msgQueue;
+    std::thread                                 m_thread;
+    std::pmr::synchronized_pool_resource        m_memory_resouce;
 };
 
 } // namespace qls

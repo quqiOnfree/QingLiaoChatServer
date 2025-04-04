@@ -1,5 +1,7 @@
 #include "qls_error.h"
 
+#include <string>
+
 class qls_error_category: public std::error_category
 {
     virtual const char* name() const noexcept override;

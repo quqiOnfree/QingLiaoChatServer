@@ -1,7 +1,6 @@
 #ifndef QLS_ERROR_H
 #define QLS_ERROR_H
 
-#include <string>
 #include <system_error>
 
 namespace qls

@@ -2,7 +2,6 @@
 #define SPINLOCK_MUTEX_HPP
 
 #include <atomic>
-#include <mutex>
 
 namespace qls
 {

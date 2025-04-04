@@ -1,8 +1,6 @@
 #ifndef SQL_PROCESS_HPP
 #define SQL_PROCESS_HPP
 
-#include <iostream>
-#include <cstring>
 #include <string>
 #include <memory>
 #include <format>

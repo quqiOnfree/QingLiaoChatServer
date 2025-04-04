@@ -1,7 +1,7 @@
 #ifndef USER_IDENTIFICATION
 #define USER_IDENTIFICATION
 
-#include <unordered_map>
+#include <functional>
 
 namespace qls
 {

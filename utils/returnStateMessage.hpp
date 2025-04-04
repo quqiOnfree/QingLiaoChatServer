@@ -1,7 +1,6 @@
 #ifndef RETURN_STATE_MESSAGE_HPP
 #define RETURN_STATE_MESSAGE_HPP
 
-#include <string>
 #include <string_view>
 #include <Json.h>
 
