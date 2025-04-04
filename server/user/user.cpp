@@ -1,5 +1,6 @@
 #include "user.h"
 
+#include <algorithm>
 #include <chrono>
 #include <random>
 #include <asio.hpp>
@@ -82,6 +83,17 @@ static inline void sendJsonToUser(qls::UserID user_id, T&& json)
     auto pack = DataPackage::makePackage(qjson::JWriter::fastWrite(std::forward<T>(json)));
     pack->type = DataPackage::Text;
     serverManager.getUser(user_id)->notifyAll(pack->packageToString());
+}
+
+template<class T, class Itor>
+    requires requires (T json_value) { qjson::JObject(json_value); }
+static inline void sendJsonToUser(Itor begin, Itor end, T&& json)
+{
+    auto pack = DataPackage::makePackage(qjson::JWriter::fastWrite(std::forward<T>(json)));
+    pack->type = DataPackage::Text;
+    std::for_each(begin, end, [pack = std::move(pack)](const qls::UserID& user_id){
+        serverManager.getUser(user_id)->notifyAll(pack->packageToString());
+    });
 }
 
 User::User(UserID user_id, bool is_create):
@@ -520,10 +532,8 @@ bool User::leaveGroup(GroupID group_id)
     json["data"]["group_id"] = group_id.getOriginValue();
 
     auto list = group->getOperatorList();
-    sendJsonToUser(group->getAdministrator(), json);
-    for (const auto& i : list) {
-        sendJsonToUser(i, json);
-    }
+    sendJsonToUser(group->getAdministrator(), qjson::JObject(json));
+    sendJsonToUser(list.begin(), list.end(), std::move(json));
     return true;
 }
 
