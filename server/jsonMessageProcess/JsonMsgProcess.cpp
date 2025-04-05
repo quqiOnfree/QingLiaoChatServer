@@ -3,6 +3,8 @@
 #include <format>
 
 #include <logger.hpp>
+#include <string>
+#include <string_view>
 #include "manager.h"
 #include "regexMatch.hpp"
 #include "returnStateMessage.hpp"
@@ -220,7 +222,7 @@ asio::awaitable<qjson::JObject> JsonMessageProcessImpl::processJsonMessage(
         const qjson::dict_t& param_dict = param.getDict();
         // Check whether the type of json values match the options
         for (const auto& [name, type]: command_ptr->getOption()) {
-            auto local_iter = param_dict.find(name);
+            auto local_iter = param_dict.find(std::string_view(name));
             if (local_iter == param_dict.cend())
                 co_return makeErrorMessage(std::format("Lost a parameter: {}.", name));
             if (local_iter->second.getType() != type)
