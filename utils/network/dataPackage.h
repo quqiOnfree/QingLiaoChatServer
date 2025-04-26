@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <string_view>
+#include <cstdint>
 
 namespace qls
 {
@@ -26,11 +27,11 @@ public:
 
 private:
 #pragma pack(1)
-    int                 length = 0;                         ///< Length of the data package.
+    std::uint32_t       length = 0;                         ///< Length of the data package.
 public:
     DataPackageType     type = DataPackageType::Unknown;    ///< Type identifier of the data package.
-    int                 sequenceSize = 1;                   ///< Sequence size.
-    int                 sequence = 0;                       ///< Sequence number of the data package.
+    std::uint32_t       sequenceSize = 1;                   ///< Sequence size.
+    std::uint32_t       sequence = 0;                       ///< Sequence number of the data package.
     long long           requestID = 0;                      ///< Request ID associated with the data package.
     char                data[0];                            ///< Data in the pack
 #pragma pack()
@@ -46,10 +47,14 @@ public:
 
     /**
      * @brief Creates a data package from the given data.
-     * @param data Original data to be stored in the data package.
      * @return Shared pointer to the created data package.
      */
-    [[nodiscard]] static std::shared_ptr<DataPackage> makePackage(std::string_view data);
+    [[nodiscard]] static std::shared_ptr<DataPackage> makePackage(
+        std::string_view    data,
+        DataPackageType     type = DataPackageType::Unknown,
+        std::uint32_t       sequenceSize = 1,
+        std::uint32_t       sequence = 0,
+        long long           requestID = 0);
 
     /**
      * @brief Loads a data package from binary data.
