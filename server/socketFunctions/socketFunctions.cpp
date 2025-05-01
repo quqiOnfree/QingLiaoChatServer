@@ -67,7 +67,7 @@ asio::awaitable<void> SocketService::process(
     if (m_impl->m_jsonProcess.getLocalUserID() == -1ll &&
         pack->type != DataPackage::Text) {
         co_await async_send(
-            qjson::JWriter::fastWrite(makeErrorMessage("You haven't logged in!")),
+            makeErrorMessage("You haven't logged in!").to_string(),
             pack->requestID,
             DataPackage::Text);
         co_return;
@@ -77,25 +77,25 @@ asio::awaitable<void> SocketService::process(
     switch (pack->type) {
     case DataPackage::Text:
         // json data type
-        co_await async_send(qjson::JWriter::fastWrite(
-                co_await m_impl->m_jsonProcess.processJsonMessage(
-                    qjson::JParser::fastParse(data), *this)),
+        co_await async_send(
+                (co_await m_impl->m_jsonProcess.processJsonMessage(
+                    qjson::to_json(data), *this)).to_string(),
             pack->requestID,
             DataPackage::Text);
         co_return;
     case DataPackage::FileStream:
         // file stream type
-        co_await async_send(qjson::JWriter::fastWrite(makeErrorMessage("Error type")),
+        co_await async_send(makeErrorMessage("Error type").to_string(),
             pack->requestID, DataPackage::Text); // Temporarily return an error
         co_return;
     case DataPackage::Binary:
         // binary stream type
-        co_await async_send(qjson::JWriter::fastWrite(makeErrorMessage("Error type")),
+        co_await async_send(makeErrorMessage("Error type").to_string(),
             pack->requestID, DataPackage::Text); // Temporarily return an error
         co_return;
     default:
         // unknown type
-        co_await async_send(qjson::JWriter::fastWrite(makeErrorMessage("Error type")),
+        co_await async_send(makeErrorMessage("Error type").to_string(),
             pack->requestID, DataPackage::Text);
         co_return;
     }

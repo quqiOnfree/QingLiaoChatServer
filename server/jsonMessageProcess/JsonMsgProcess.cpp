@@ -183,7 +183,7 @@ asio::awaitable<qjson::JObject> JsonMessageProcessImpl::processJsonMessage(
 {
     try {
         // Check whether the json pack is valid
-        serverLogger.debug("Json body: ", qjson::JWriter::fastWrite(json));
+        serverLogger.debug("Json body: ", json.to_string());
         if (json.getType() != qjson::JDict)
             co_return makeErrorMessage("The data body must be json dictory type!");
         else if (!json.hasMember("function"))

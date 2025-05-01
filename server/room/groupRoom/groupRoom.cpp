@@ -157,7 +157,7 @@ void GroupRoom::sendMessage(UserID sender_user_id, std::string_view message)
     json["data"]["group_id"] = m_impl->m_group_id.getOriginValue();
     json["data"]["message"] = message;
 
-    sendData(qjson::JWriter::fastWrite(json));
+    sendData(json.to_string());
 }
 
 void GroupRoom::sendTipMessage(UserID sender_user_id,
@@ -203,7 +203,7 @@ void GroupRoom::sendTipMessage(UserID sender_user_id,
     json["data"]["group_id"] = m_impl->m_group_id.getOriginValue();
     json["data"]["message"] = message;
 
-    sendData(qjson::JWriter::fastWrite(json));
+    sendData(json.to_string());
 }
 
 void GroupRoom::sendUserTipMessage(UserID sender_user_id,
@@ -252,7 +252,7 @@ void GroupRoom::sendUserTipMessage(UserID sender_user_id,
     json["data"]["group_id"] = m_impl->m_group_id.getOriginValue();
     json["data"]["message"] = message;
 
-    sendData(qjson::JWriter::fastWrite(json), receiver_user_id);
+    sendData(json.to_string(), receiver_user_id);
 }
 
 std::vector<MessageResult> GroupRoom::getMessage(

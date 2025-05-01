@@ -84,7 +84,7 @@ void PrivateRoom::sendMessage(std::string_view message, UserID sender_user_id)
     json["data"]["user_id"] = sender_user_id.getOriginValue();
     json["data"]["message"] = message;
 
-    sendData(qjson::JWriter::fastWrite(json));
+    sendData(json.to_string());
 }
 
 void PrivateRoom::sendTipMessage(std::string_view message, UserID sender_user_id)
@@ -108,7 +108,7 @@ void PrivateRoom::sendTipMessage(std::string_view message, UserID sender_user_id
     json["data"]["user_id"] = sender_user_id.getOriginValue();
     json["data"]["message"] = message;
 
-    sendData(qjson::JWriter::fastWrite(json));
+    sendData(json.to_string());
 }
 
 std::vector<MessageResult> PrivateRoom::getMessage(

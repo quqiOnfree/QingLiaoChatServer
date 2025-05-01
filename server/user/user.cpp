@@ -80,7 +80,7 @@ template<class T>
     requires requires (T json_value) { qjson::JObject(json_value); }
 static inline void sendJsonToUser(qls::UserID user_id, T&& json)
 {
-    auto pack = DataPackage::makePackage(qjson::JWriter::fastWrite(std::forward<T>(json)));
+    auto pack = DataPackage::makePackage(std::forward<T>(json).to_string());
     pack->type = DataPackage::Text;
     serverManager.getUser(user_id)->notifyAll(pack->packageToString());
 }
@@ -89,7 +89,7 @@ template<class T, class Itor>
     requires requires (T json_value) { qjson::JObject(json_value); }
 static inline void sendJsonToUser(Itor begin, Itor end, T&& json)
 {
-    auto pack = DataPackage::makePackage(qjson::JWriter::fastWrite(std::forward<T>(json)));
+    auto pack = DataPackage::makePackage(std::forward<T>(json).to_string());
     pack->type = DataPackage::Text;
     std::for_each(begin, end, [pack = std::move(pack)](const qls::UserID& user_id){
         serverManager.getUser(user_id)->notifyAll(pack->packageToString());
