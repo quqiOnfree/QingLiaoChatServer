@@ -45,7 +45,7 @@ TCPRoom::~TCPRoom() noexcept = default;
 
 void TCPRoom::joinRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::unique_lock lock(m_impl->m_user_map_mutex);
     if (m_impl->m_user_map.find(user_id) != m_impl->m_user_map.cend())
         return;
 
@@ -54,13 +54,13 @@ void TCPRoom::joinRoom(UserID user_id)
 
 bool TCPRoom::hasUser(UserID user_id) const
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::shared_lock lock(m_impl->m_user_map_mutex);
     return m_impl->m_user_map.find(user_id) != m_impl->m_user_map.cend();
 }
 
 void TCPRoom::leaveRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::unique_lock lock(m_impl->m_user_map_mutex);
     auto iter = m_impl->m_user_map.find(user_id);
     if (iter == m_impl->m_user_map.cend())
         return;
@@ -70,7 +70,7 @@ void TCPRoom::leaveRoom(UserID user_id)
 
 void TCPRoom::sendData(std::string_view data)
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::shared_lock lock(m_impl->m_user_map_mutex);
 
     for (const auto& [user_id, user_ptr]: std::as_const(m_impl->m_user_map)) {
         if (!user_ptr.expired())
@@ -80,7 +80,7 @@ void TCPRoom::sendData(std::string_view data)
 
 void TCPRoom::sendData(std::string_view data, UserID user_id)
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::shared_lock lock(m_impl->m_user_map_mutex);
     if (m_impl->m_user_map.find(user_id) == m_impl->m_user_map.cend())
         throw std::logic_error("User id not in room.");
     serverManager.getUser(user_id)->notifyAll(data);
@@ -120,7 +120,7 @@ KCPRoom::~KCPRoom() noexcept = default;
 
 void KCPRoom::joinRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::unique_lock lock(m_impl->m_user_map_mutex);
     if (m_impl->m_user_map.find(user_id) != m_impl->m_user_map.cend())
         return;
 
@@ -129,13 +129,13 @@ void KCPRoom::joinRoom(UserID user_id)
 
 bool KCPRoom::hasUser(UserID user_id) const
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::shared_lock lock(m_impl->m_user_map_mutex);
     return m_impl->m_user_map.find(user_id) != m_impl->m_user_map.cend();
 }
 
 void KCPRoom::leaveRoom(UserID user_id)
 {
-    std::unique_lock<std::shared_mutex> lock(m_impl->m_user_map_mutex);
+    std::unique_lock lock(m_impl->m_user_map_mutex);
     auto iter = m_impl->m_user_map.find(user_id);
     if (iter == m_impl->m_user_map.cend())
         return;
@@ -151,7 +151,7 @@ void KCPRoom::addSocket(const std::shared_ptr<KCPSocket> &socket)
 
 bool KCPRoom::hasSocket(const std::shared_ptr<KCPSocket> &socket) const
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_socket_map_mutex);
+    std::shared_lock lock(m_impl->m_socket_map_mutex);
     return m_impl->m_socket_map.find(socket) != m_impl->m_socket_map.cend();
 }
 
@@ -165,7 +165,7 @@ void KCPRoom::removeSocket(const std::shared_ptr<KCPSocket> &socket)
 
 void KCPRoom::sendData(std::string_view data)
 {
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_socket_map_mutex);
+    std::shared_lock lock(m_impl->m_socket_map_mutex);
     for (const auto& socket: std::as_const(m_impl->m_socket_map)) {
         socket->async_write_some(asio::buffer(data), [](auto, auto){});
     }

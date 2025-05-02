@@ -74,21 +74,21 @@ bool JsonMessageProcessCommandList::addCommand(
     if (hasCommand(function_name) || !command_ptr)
         return false;
     
-    std::unique_lock<std::shared_mutex> unique_lock1(m_function_map_mutex);
+    std::unique_lock unique_lock1(m_function_map_mutex);
     m_function_map.emplace(function_name, command_ptr);
     return true;
 }
 
 bool JsonMessageProcessCommandList::hasCommand(std::string_view function_name) const
 {
-    std::shared_lock<std::shared_mutex> lock(m_function_map_mutex);
+    std::shared_lock lock(m_function_map_mutex);
     return m_function_map.find(function_name) != m_function_map.cend();
 }
 
 std::shared_ptr<JsonMessageCommand>
     JsonMessageProcessCommandList::getCommand(std::string_view function_name)
 {
-    std::shared_lock<std::shared_mutex> lock(m_function_map_mutex);
+    std::shared_lock lock(m_function_map_mutex);
     auto iter = m_function_map.find(function_name);
     if (iter == m_function_map.cend())
         throw std::system_error(make_error_code(qls_errc::null_pointer));
@@ -100,7 +100,7 @@ bool JsonMessageProcessCommandList::removeCommand(std::string_view function_name
     if (!hasCommand(function_name))
         return false;
 
-    std::unique_lock<std::shared_mutex> unique_lock1(m_function_map_mutex);
+    std::unique_lock unique_lock1(m_function_map_mutex);
     auto itor = m_function_map.find(function_name);
     if (itor == m_function_map.end())
         return false;
@@ -173,7 +173,7 @@ qjson::JObject JsonMessageProcessImpl::searchUser(std::string_view user_name)
 
 UserID JsonMessageProcessImpl::getLocalUserID() const
 {
-    std::shared_lock<std::shared_mutex> lock(m_user_id_mutex);
+    std::shared_lock lock(m_user_id_mutex);
     return this->m_user_id;
 }
 
@@ -199,7 +199,7 @@ asio::awaitable<qjson::JObject> JsonMessageProcessImpl::processJsonMessage(
 
         // Check if user has logined
         {
-            std::shared_lock<std::shared_mutex> shared_lock1(m_user_id_mutex);
+            std::shared_lock shared_lock1(m_user_id_mutex);
             // Check if userid == -1
             if (m_user_id == UserID(-1) &&
                 function_name != "login" &&
@@ -232,7 +232,7 @@ asio::awaitable<qjson::JObject> JsonMessageProcessImpl::processJsonMessage(
         UserID user_id;
         {
             // Get the ID of this user
-            std::shared_lock<std::shared_mutex> id_lock(m_user_id_mutex);
+            std::shared_lock id_lock(m_user_id_mutex);
             user_id = m_user_id;
         }
         
@@ -296,7 +296,7 @@ qjson::JObject JsonMessageProcessImpl::login(
                 user_id, DeviceType::Unknown);
 
         auto returnJson = makeSuccessMessage("Successfully logged in!");
-        std::unique_lock<std::shared_mutex> lock(m_user_id_mutex);
+        std::unique_lock lock(m_user_id_mutex);
         this->m_user_id = user_id;
 
         

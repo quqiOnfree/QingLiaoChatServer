@@ -3,6 +3,7 @@
 
 #include <openssl/evp.h>
 #include <stdexcept>
+#include <utility>
 
 namespace qls
 {
@@ -11,33 +12,29 @@ namespace qls
     public:
         ossl_proxy()
         {
-            library_context_ = OSSL_LIB_CTX_new();
-            if (library_context_ == nullptr)
+            if (!(library_context_ = OSSL_LIB_CTX_new()))
                 throw std::runtime_error("OSSL_LIB_CTX_new() returned NULL");
         }
 
         ossl_proxy(const ossl_proxy&) = delete;
-        ossl_proxy(ossl_proxy&& o) noexcept
-        {
-            library_context_ = o.library_context_;
-            o.library_context_ = nullptr;
-        }
+        ossl_proxy(ossl_proxy&& o) noexcept:
+            library_context_(std::exchange(o.library_context_, nullptr))
+        {}
 
         ossl_proxy& operator=(const ossl_proxy&) = delete;
         ossl_proxy& operator=(ossl_proxy&& o) noexcept
         {
             if (this == &o)
                 return *this;
-            if (library_context_ != nullptr)
+            if (library_context_)
                 OSSL_LIB_CTX_free(library_context_);
-            library_context_ = o.library_context_;
-            o.library_context_ = nullptr;
+            library_context_ = std::exchange(o.library_context_, nullptr);
             return *this;
         }
 
         ~ossl_proxy() noexcept
         {
-            if (library_context_ != nullptr)
+            if (library_context_)
                 OSSL_LIB_CTX_free(library_context_);
         }
 

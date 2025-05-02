@@ -40,7 +40,7 @@ public:
         }
 
         {
-            std::unique_lock<std::mutex> lock(m_mutex);
+            std::unique_lock lock(m_mutex);
             m_taskNames.push_back(taskName);
             m_tasks.push({ std::clock(), taskName, std::bind(std::forward<Func>(func),
                 std::forward<Args>(args)...), interval });
@@ -56,7 +56,7 @@ public:
         if (postion >= static_cast<long long>(m_taskNames.size()))
             throw std::logic_error("The postion is invalid.");
 
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::unique_lock lock(m_mutex);
 
         std::string taskName = *(m_taskNames.begin() + postion);
 
@@ -105,7 +105,7 @@ protected:
     {
         while (m_isRunning)
         {
-            std::unique_lock<std::mutex> lock(m_mutex);
+            std::unique_lock lock(m_mutex);
             m_cv.wait(lock, [&]() {return (!m_tasks.empty() && m_tasks.top().clock <= std::clock()) || !m_isRunning; });
             if (!m_isRunning)
                 return;

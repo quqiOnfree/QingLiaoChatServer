@@ -72,7 +72,7 @@ void PrivateRoom::sendMessage(std::string_view message, UserID sender_user_id)
 
     // 存储数据
     {
-        std::unique_lock<std::shared_mutex> lock(m_impl->m_message_map_mutex);
+        std::unique_lock lock(m_impl->m_message_map_mutex);
         m_impl->m_message_map.insert({
             std::chrono::utc_clock::now(),
             {sender_user_id, std::string(message),
@@ -96,7 +96,7 @@ void PrivateRoom::sendTipMessage(std::string_view message, UserID sender_user_id
     
     // 存储数据
     {
-        std::unique_lock<std::shared_mutex> lock(m_impl->m_message_map_mutex);
+        std::unique_lock lock(m_impl->m_message_map_mutex);
         m_impl->m_message_map.insert({
             std::chrono::utc_clock::now(),
             {sender_user_id, std::string(message),
@@ -120,7 +120,7 @@ std::vector<MessageResult> PrivateRoom::getMessage(
     if (from > to)
         return {};
 
-    std::shared_lock<std::shared_mutex> lock(m_impl->m_message_map_mutex);
+    std::shared_lock lock(m_impl->m_message_map_mutex);
     const auto& message_map = std::as_const(m_impl->m_message_map);
     if (message_map.empty())
         return {};
@@ -170,7 +170,7 @@ asio::awaitable<void> PrivateRoom::auto_clean()
         while (true) {
             m_impl->m_clear_timer.expires_after(10min);
             co_await m_impl->m_clear_timer.async_wait(asio::use_awaitable);
-            std::unique_lock<std::shared_mutex> lock(m_impl->m_message_map_mutex);
+            std::unique_lock lock(m_impl->m_message_map_mutex);
             auto end = m_impl->m_message_map.upper_bound(std::chrono::utc_clock::now() - std::chrono::days(7));
             m_impl->m_message_map.erase(m_impl->m_message_map.begin(), end);
         }

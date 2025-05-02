@@ -117,7 +117,7 @@ public:
         this->m_thread_is_running = true;
         this->m_work_thread = std::thread([this]() -> void {
             while (m_thread_is_running) {
-                std::unique_lock<std::mutex> lock(m_function_queue_mutex);
+                std::unique_lock lock(m_function_queue_mutex);
                 this->m_cv.wait(lock,
                     [this]() { return !m_function_queue.empty() || !m_thread_is_running; });
 
@@ -166,7 +166,7 @@ public:
         return asio::async_initiate<CompletionToken, void(R)>(
             [this](auto handle, auto&& func, auto&&... args) {
                 {
-                    std::unique_lock<std::mutex> lock(this->m_function_queue_mutex);
+                    std::unique_lock lock(this->m_function_queue_mutex);
                     this->m_function_queue.push(std::bind(
                         [](auto handle, auto&& func, auto&&... args) {
                             handle(std::invoke(std::forward<decltype(func)>(func), std::forward<decltype(args)>(args)...));

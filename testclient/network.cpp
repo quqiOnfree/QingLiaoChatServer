@@ -203,7 +203,7 @@ namespace qls
         
         m_network_impl->work_thread = std::thread([&]() {
             while (m_network_impl->is_running) {
-                std::unique_lock<std::mutex> lock(m_network_impl->mutex);
+                std::unique_lock lock(m_network_impl->mutex);
                 m_network_impl->condition_variable.wait(lock,
                     [&]() { return !m_network_impl->is_running || !m_network_impl->endpoints.empty(); });
                 if (!m_network_impl->is_running)
@@ -239,7 +239,7 @@ namespace qls
     {
         asio::ip::tcp::resolver resolver(m_network_impl->io_context);
         m_network_impl->is_receiving = false;
-        std::unique_lock<std::mutex> lock(m_network_impl->mutex);
+        std::unique_lock lock(m_network_impl->mutex);
         m_network_impl->endpoints = resolver.resolve(m_network_impl->host,
             std::to_string(m_network_impl->port));
         m_network_impl->condition_variable.notify_all();
@@ -305,8 +305,8 @@ namespace qls
         option_function(pack);
         long long requestId = 0;
         {
-            std::unique_lock<std::mutex> mt_lock(m_network_impl->requestID_mt_mutex, std::defer_lock);
-            std::unique_lock<std::shared_mutex> set_lock(m_network_impl->requestID_set_mutex, std::defer_lock),
+            std::unique_lock mt_lock(m_network_impl->requestID_mt_mutex, std::defer_lock);
+            std::unique_lock set_lock(m_network_impl->requestID_set_mutex, std::defer_lock),
                 map_lock(m_network_impl->requestID2Function_map_mutex, std::defer_lock);
             std::lock(mt_lock, set_lock, map_lock);
             do {
@@ -322,7 +322,7 @@ namespace qls
 
     bool Network::add_received_stdstring_callback(const std::string& name, ReceiveStdStringFunction func)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->revceiveStdStringFunction_map_mutex);
         auto iter = m_network_impl->revceiveStdStringFunction_map.find(name);
         if (iter != m_network_impl->revceiveStdStringFunction_map.end())
@@ -333,7 +333,7 @@ namespace qls
 
     bool Network::remove_received_stdstring_callback(const std::string& name)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->revceiveStdStringFunction_map_mutex);
         auto iter = m_network_impl->revceiveStdStringFunction_map.find(name);
         if (iter == m_network_impl->revceiveStdStringFunction_map.end())
@@ -344,7 +344,7 @@ namespace qls
 
     bool Network::add_connected_callback(const std::string& name, std::function<void()> func)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->connectedCallbackFunction_map_mutex);
         auto iter = m_network_impl->connectedCallbackFunction_map.find(name);
         if (iter != m_network_impl->connectedCallbackFunction_map.end())
@@ -355,7 +355,7 @@ namespace qls
 
     bool Network::remove_connected_callback(const std::string& name)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->connectedCallbackFunction_map_mutex);
         auto iter = m_network_impl->connectedCallbackFunction_map.find(name);
         if (iter == m_network_impl->connectedCallbackFunction_map.end())
@@ -366,7 +366,7 @@ namespace qls
 
     bool Network::add_disconnected_callback(const std::string& name, std::function<void()> func)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->disconnectedCallbackFunction_map_mutex);
         auto iter = m_network_impl->disconnectedCallbackFunction_map.find(name);
         if (iter != m_network_impl->disconnectedCallbackFunction_map.end())
@@ -377,7 +377,7 @@ namespace qls
 
     bool Network::remove_disconnected_callback(const std::string& name)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->disconnectedCallbackFunction_map_mutex);
         auto iter = m_network_impl->disconnectedCallbackFunction_map.find(name);
         if (iter == m_network_impl->disconnectedCallbackFunction_map.end())
@@ -388,7 +388,7 @@ namespace qls
 
     bool Network::add_connected_error_callback(const std::string& name, std::function<void(std::error_code)> func)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->connectedErrorCallbackFunction_map_mutex);
         auto iter = m_network_impl->connectedErrorCallbackFunction_map.find(name);
         if (iter != m_network_impl->connectedErrorCallbackFunction_map.end())
@@ -399,7 +399,7 @@ namespace qls
 
     bool Network::remove_connected_error_callback(const std::string& name)
     {
-        std::unique_lock<std::shared_mutex> lock(
+        std::unique_lock lock(
             m_network_impl->connectedErrorCallbackFunction_map_mutex);
         auto iter = m_network_impl->connectedErrorCallbackFunction_map.find(name);
         if (iter == m_network_impl->connectedErrorCallbackFunction_map.end())
@@ -410,7 +410,7 @@ namespace qls
 
     void Network::call_connected()
     {
-        std::shared_lock<std::shared_mutex> lock(
+        std::shared_lock lock(
             m_network_impl->connectedCallbackFunction_map_mutex);
         for (const auto& [_, func]: m_network_impl->connectedCallbackFunction_map) {
             func();
@@ -419,7 +419,7 @@ namespace qls
 
     void Network::call_disconnect()
     {
-        std::shared_lock<std::shared_mutex> lock(
+        std::shared_lock lock(
             m_network_impl->disconnectedCallbackFunction_map_mutex);
         for (const auto& [_, func] : m_network_impl->disconnectedCallbackFunction_map) {
             func();
@@ -428,7 +428,7 @@ namespace qls
 
     void Network::call_connected_error(const std::error_code& error)
     {
-        std::shared_lock<std::shared_mutex> lock(
+        std::shared_lock lock(
             m_network_impl->connectedErrorCallbackFunction_map_mutex);
         for (const auto& [_, func] : m_network_impl->connectedErrorCallbackFunction_map) {
             func(error);
@@ -441,7 +441,7 @@ namespace qls
             auto pack = DataPackage::stringToPackage(data);
             long long requestID = pack->requestID;
             if (pack->requestID != 0) {
-                std::unique_lock<std::shared_mutex> map_lock(m_network_impl->requestID2Function_map_mutex,
+                std::unique_lock map_lock(m_network_impl->requestID2Function_map_mutex,
                     std::defer_lock),
                     set_lock(m_network_impl->requestID_set_mutex, std::defer_lock);
                 bool need_moving_data = false;
@@ -464,7 +464,7 @@ namespace qls
         } catch (...) {
             return;
         }
-        std::shared_lock<std::shared_mutex> lock(m_network_impl->revceiveStdStringFunction_map_mutex);
+        std::shared_lock lock(m_network_impl->revceiveStdStringFunction_map_mutex);
         for (const auto& [_, func] : m_network_impl->revceiveStdStringFunction_map) {
             func(data);
         }
