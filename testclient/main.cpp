@@ -1,6 +1,6 @@
+#include <exception>
 #include <iostream>
 #include <system_error>
-#include <chrono>
 #include <atomic>
 
 #include "network.h"
@@ -63,7 +63,12 @@ int main() {
                   << "\tBody: " << pack->getData() << '\n';
     });
 
-    network.connect();
+    try {
+        network.connect();
+    } catch (const std::exception& e) {
+        std::cout << e.what() << '\n';
+        return -1;
+    }
 
     std::cout << "Connecting to server...\n";
     while (true) {
@@ -79,6 +84,10 @@ int main() {
         if (command == "") continue;
 
         std::vector<std::string> vec = split(strip(command));
+        if (vec[0] == "stop") {
+            network.stop();
+            return 0;
+        }
         try {
             if (!command_manager.canFindCommand(vec[0])) {
                 std::cout << "Could not find a command: " << vec[0] << '\n';

@@ -34,7 +34,7 @@ struct PrivateRoomImpl
 
 void PrivateRoomImplDeleter::operator()(PrivateRoomImpl* pri) noexcept
 {
-    local_sync_private_room_pool.deallocate(pri, sizeof(PrivateRoomImpl));
+    std::pmr::polymorphic_allocator<PrivateRoomImpl>(&local_sync_private_room_pool).delete_object(pri);
 }
 
 // PrivateRoom

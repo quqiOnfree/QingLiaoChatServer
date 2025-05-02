@@ -39,8 +39,7 @@ struct GroupRoomImpl
                             m_muted_user_map;
     std::shared_mutex       m_muted_user_map_mutex;
 
-    std::map<std::chrono::utc_clock::time_point,
-        MessageStructure>
+    std::map<std::chrono::utc_clock::time_point, MessageStructure>
                             m_message_map;
     std::shared_mutex       m_message_map_mutex;
 
@@ -49,7 +48,7 @@ struct GroupRoomImpl
 
 void GroupRoomImplDeleter::operator()(GroupRoomImpl *gri)
 {
-    local_sync_group_room_pool.deallocate(gri, sizeof(GroupRoomImpl));
+    std::pmr::polymorphic_allocator<GroupRoomImpl>(&local_sync_group_room_pool).delete_object(gri);
 }
 
 // GroupRoom

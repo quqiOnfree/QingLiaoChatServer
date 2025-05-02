@@ -1,5 +1,6 @@
 #include "room.h"
 
+#include <memory_resource>
 #include <unordered_map>
 #include <mutex>
 #include <shared_mutex>
@@ -34,7 +35,7 @@ struct TCPRoomImpl
 
 void TCPRoomImplDeleter::operator()(TCPRoomImpl* mem_pointer) noexcept
 {
-    memory_resource->deallocate(mem_pointer, sizeof(TCPRoomImpl));
+    std::pmr::polymorphic_allocator<TCPRoomImpl>(memory_resource).delete_object(mem_pointer);
 }
 
 TCPRoom::TCPRoom(std::pmr::memory_resource *mr):
@@ -113,7 +114,7 @@ KCPRoom::KCPRoom(std::pmr::memory_resource *mr):
 
 void KCPRoomImplDeleter::operator()(KCPRoomImpl* mem_pointer) noexcept
 {
-    memory_resource->deallocate(mem_pointer, sizeof(KCPRoomImpl));
+    std::pmr::polymorphic_allocator<KCPRoomImpl>(memory_resource).delete_object(mem_pointer);
 }
 
 KCPRoom::~KCPRoom() noexcept = default;

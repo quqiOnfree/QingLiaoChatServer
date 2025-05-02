@@ -22,7 +22,7 @@ static inline qjson::JObject makeJsonFunctionDataPackage(std::string_view functi
     json["parameters"] = qjson::JObject(qjson::JValueType::JDict);
     for (auto [parameterName, parameterValue]: list)
     {
-        json["parameters"][parameterName.c_str()] = parameterValue;
+        json["parameters"][parameterName] = parameterValue;
     }
     return json;
 }

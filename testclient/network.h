@@ -1,6 +1,7 @@
 #ifndef NETWORK_HPP
 #define NETWORK_HPP
 
+#include <memory>
 #include <string>
 #include <asio.hpp>
 
@@ -57,7 +58,7 @@ namespace qls
         asio::awaitable<void> heart_beat_write();
 
     private:
-        std::shared_ptr<NetworkImpl> m_network_impl;
+        std::unique_ptr<NetworkImpl> m_network_impl;
     };
 }
 

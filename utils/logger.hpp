@@ -226,6 +226,7 @@ protected:
 
         void operator()(BasePrintTask* ptr)
         {
+            ptr->~BasePrintTask();
             this_logger->m_memory_resouce.deallocate(ptr, size);
         }
     };

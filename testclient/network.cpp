@@ -19,7 +19,6 @@
 #include <logger.hpp>
 #include <Json.h>
 
-#include "definition.hpp"
 #include <package.h>
 #include <dataPackage.h>
 
@@ -27,9 +26,6 @@ namespace qls
 {
     using asio::ip::tcp;
     using asio::awaitable;
-    using asio::co_spawn;
-    using asio::detached;
-    using asio::use_awaitable;
     namespace this_coro = asio::this_coro;
     using namespace asio::experimental::awaitable_operators;
     using namespace std::placeholders;
@@ -104,11 +100,7 @@ namespace qls
 
     struct NetworkImpl
     {
-#ifdef _DEBUG
         std::string host = "127.0.0.1";
-#else
-        std::string host = "hcolda.qqof.top";
-#endif // DEBUG
         int         port = 55555;
 
         std::thread                             work_thread;
@@ -168,14 +160,11 @@ namespace qls
             );
 
             // 设置是否验证cert
-#ifdef _DEBUG
             ssl_context.set_verify_mode(asio::ssl::verify_none);
             ssl_context.set_verify_callback(
                 std::bind(&NetworkImpl::verify_certificate, this, _1, _2));
-#else
-            ssl_context.set_verify_mode(asio::ssl::verify_peer);
-            ssl_context.set_verify_callback(ssl::rfc2818_verification("host.name"));
-#endif // _DEBUG
+            // ssl_context.set_verify_mode(asio::ssl::verify_peer);
+            // ssl_context.set_verify_callback(ssl::rfc2818_verification("host.name"));
 
             socket_ptr = std::make_shared<ssl_socket>(io_context, ssl_context);
         }
@@ -195,7 +184,7 @@ namespace qls
     };
 
     Network::Network() :
-        m_network_impl(std::make_shared<NetworkImpl>())
+        m_network_impl(std::make_unique<NetworkImpl>())
     {
         m_network_impl->is_running = true;
         m_network_impl->is_receiving = false;

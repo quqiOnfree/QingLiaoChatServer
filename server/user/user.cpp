@@ -635,7 +635,7 @@ void User::notifyWithType(DeviceType type, std::string_view data)
 
 void UserImplDeleter::operator()(UserImpl *up)
 {
-    local_user_sync_pool.deallocate(up, sizeof(UserImpl));
+    std::pmr::polymorphic_allocator<UserImpl>(&local_user_sync_pool).delete_object(up);
 }
 
 } // namespace qls
