@@ -51,7 +51,7 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
     // if length is smaller than the default package size
     if (size != data.size() || size < sizeof(DataPackage))
         throw std::system_error(qls_errc::invalid_data);
-    else if (size > (UINT32_MAX >> 1ui32))
+    else if (size > UINT32_MAX)
         throw std::system_error(qls_errc::data_too_large);
 
     // Allocate memory and construct the DataPackage
