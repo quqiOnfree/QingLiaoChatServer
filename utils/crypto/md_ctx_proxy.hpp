@@ -20,7 +20,7 @@ public:
     md_ctx_proxy(md_proxy& md):
         md_proxy_(md)
     {
-        if (!md_proxy_.get_native())
+        if (!md_proxy_)
             throw std::logic_error("md_proxy has been moved");
         if (!(digest_context_ = EVP_MD_CTX_new()))
             throw std::runtime_error("EVP_MD_CTX_new() returned NULL");
@@ -60,10 +60,9 @@ public:
     std::string operator()(Args&&... args)
     {
         if (!digest_context_) {
-            if (!md_proxy_.get_native())
+            if (!md_proxy_)
                 throw std::logic_error("md_proxy has been moved");
-            digest_context_ = EVP_MD_CTX_new();
-            if (digest_context_ == nullptr) {
+            if (!(digest_context_ = EVP_MD_CTX_new())) {
                 throw std::runtime_error("EVP_MD_CTX_new() returned NULL");
             }
             if (EVP_DigestInit(digest_context_, md_proxy_.get_native()) != 1) {

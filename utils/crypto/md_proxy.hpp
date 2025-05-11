@@ -14,7 +14,7 @@ class md_proxy
 public:
     md_proxy(ossl_proxy& ossl_proxy, std::string_view algorithm)
     {
-        if (!ossl_proxy.get_native())
+        if (!ossl_proxy)
             throw std::logic_error("ossl_proxy has been moved");
         message_digest_ = EVP_MD_fetch(ossl_proxy.get_native(),
             algorithm.data(), nullptr);
@@ -24,7 +24,7 @@ public:
 
     md_proxy(ossl_proxy& ossl_proxy, std::string_view algorithm, std::string_view properties)
     {
-        if (!ossl_proxy.get_native())
+        if (!ossl_proxy)
             throw std::logic_error("ossl_proxy has been moved");
         message_digest_ = EVP_MD_fetch(ossl_proxy.get_native(),
             algorithm.data(), properties.data());
@@ -56,6 +56,11 @@ public:
     }
 
     EVP_MD* get_native() noexcept
+    {
+        return message_digest_;
+    }
+
+    operator bool()
     {
         return message_digest_;
     }

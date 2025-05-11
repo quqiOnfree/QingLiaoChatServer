@@ -13,20 +13,20 @@ namespace qls
 static std::pmr::synchronized_pool_resource local_datapack_sync_pool;
 
 std::shared_ptr<DataPackage> DataPackage::makePackage(
-    std::string_view data,
-    DataPackageType type,
-    std::uint32_t sequenceSize,
-    std::uint32_t sequence,
-    long long requestID)
+    std::string_view    data,
+    DataPackageType     type,
+    LengthType          sequenceSize,
+    LengthType          sequence,
+    RequestIDType       requestID)
 {
     const std::size_t lenth = sizeof(DataPackage) + data.size();
-    void* mem = local_datapack_sync_pool.allocate(static_cast<int>(lenth));
+    void* mem = local_datapack_sync_pool.allocate(static_cast<LengthType>(lenth));
     std::memset(mem, 0, lenth);
     std::shared_ptr<DataPackage> package(static_cast<DataPackage*>(mem),
         [lenth](DataPackage* dp) {
             local_datapack_sync_pool.deallocate(dp, lenth);
         });
-    package->length = static_cast<int>(lenth);
+    package->length = static_cast<LengthType>(lenth);
     std::memcpy(package->data, data.data(), data.size());
     package->type = type;
     package->sequenceSize = sequenceSize;
@@ -42,8 +42,8 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
         throw std::system_error(qls_errc::data_too_small);
 
     // Data package length
-    int size = 0;
-    std::memcpy(&size, data.data(), sizeof(int));
+    LengthType size = 0;
+    std::memcpy(&size, data.data(), sizeof(LengthType));
     if (!isBigEndianness())
         size = swapEndianness(size);
 
@@ -51,7 +51,7 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
     // if length is smaller than the default package size
     if (size != data.size() || size < sizeof(DataPackage))
         throw std::system_error(qls_errc::invalid_data);
-    else if (size > INT32_MAX / 2)
+    else if (size > (UINT32_MAX >> 1ui32))
         throw std::system_error(qls_errc::data_too_large);
 
     // Allocate memory and construct the DataPackage
@@ -59,7 +59,7 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
     std::memset(mem, 0, size);
     std::shared_ptr<DataPackage> package(static_cast<DataPackage*>(mem),
         [lenth = size](DataPackage* dp) {
-            local_datapack_sync_pool.deallocate(dp, static_cast<std::size_t>(lenth));
+            local_datapack_sync_pool.deallocate(dp, lenth);
         });
     // Copy the data from string
     std::memcpy(package.get(), data.data(), size);
@@ -68,7 +68,8 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
     if (!isBigEndianness()) {
         // Endianness conversion
         package->length = swapEndianness(package->length);
-        package->type = static_cast<DataPackageType>(swapEndianness(static_cast<int>(package->type)));
+        package->type = static_cast<DataPackageType>(
+            swapEndianness(static_cast<LengthType>(package->type)));
         package->sequenceSize = swapEndianness(package->sequenceSize);
         package->sequence = swapEndianness(package->sequence);
         package->requestID = swapEndianness(package->requestID);
@@ -91,7 +92,8 @@ std::string DataPackage::packageToString() noexcept
     if (!isBigEndianness()) {
         // Endianness conversion
         package->length = swapEndianness(package->length);
-        package->type = static_cast<DataPackageType>(swapEndianness(static_cast<int>(package->type)));
+        package->type = static_cast<DataPackageType>(
+            swapEndianness(static_cast<LengthType>(package->type)));
         package->sequenceSize = swapEndianness(package->sequenceSize);
         package->sequence = swapEndianness(package->sequence);
         package->requestID = swapEndianness(package->requestID);
@@ -102,15 +104,15 @@ std::string DataPackage::packageToString() noexcept
 
 std::size_t DataPackage::getPackageSize() noexcept
 {
-    int size = 0;
-    std::memcpy(&size, &(this->length), sizeof(int));
+    LengthType size = 0;
+    std::memcpy(&size, &(this->length), sizeof(LengthType));
     return std::size_t(size);
 }
 
 std::size_t DataPackage::getDataSize() noexcept
 {
-    int size = 0;
-    std::memcpy(&size, &(this->length), sizeof(int));
+    LengthType size = 0;
+    std::memcpy(&size, &(this->length), sizeof(LengthType));
     return std::size_t(size) - sizeof(DataPackage);
 }
 

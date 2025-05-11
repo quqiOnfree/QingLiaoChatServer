@@ -16,7 +16,11 @@ namespace qls
 class DataPackage final
 {
 public:
-    enum DataPackageType: int
+    using LengthType = std::uint32_t;
+    using RequestIDType = long long;
+    using DataType = unsigned char;
+
+    enum DataPackageType: LengthType
     {
         Unknown = 0,
         Text = 1,
@@ -27,13 +31,14 @@ public:
 
 private:
 #pragma pack(1)
-    std::uint32_t       length = 0;                         ///< Length of the data package.
+    LengthType          length = 0;         ///< Length of the data package.
 public:
-    DataPackageType     type = DataPackageType::Unknown;    ///< Type identifier of the data package.
-    std::uint32_t       sequenceSize = 1;                   ///< Sequence size.
-    std::uint32_t       sequence = 0;                       ///< Sequence number of the data package.
-    long long           requestID = 0;                      ///< Request ID associated with the data package.
-    char                data[0];                            ///< Data in the pack
+    DataPackageType     type = Unknown;     ///< Type identifier of the data package.
+    LengthType          sequenceSize = 1;   ///< Sequence size.
+    LengthType          sequence = 0;       ///< Sequence number of the data package.
+    RequestIDType       requestID = 0;      ///< Request ID associated with the data package.
+private:
+    DataType            data[0];            ///< Data in the pack
 #pragma pack()
 
 public:
@@ -52,9 +57,9 @@ public:
     [[nodiscard]] static std::shared_ptr<DataPackage> makePackage(
         std::string_view    data,
         DataPackageType     type = DataPackageType::Unknown,
-        std::uint32_t       sequenceSize = 1,
-        std::uint32_t       sequence = 0,
-        long long           requestID = 0);
+        LengthType          sequenceSize = 1,
+        LengthType          sequence = 0,
+        RequestIDType       requestID = 0);
 
     /**
      * @brief Loads a data package from binary data.
