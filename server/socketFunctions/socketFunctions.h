@@ -15,14 +15,14 @@ struct SocketServiceImpl;
 class SocketService final
 {
 public:
-    SocketService(std::shared_ptr<Connection> connection_ptr);
+    SocketService(std::shared_ptr<Connection<asio::ip::tcp::socket>> connection_ptr);
     ~SocketService() noexcept;
 
     /**
     * @brief Get the socket pointer
     * @return Connection pointer
     */
-    std::shared_ptr<Connection> get_connection_ptr() const;
+    std::shared_ptr<Connection<asio::ip::tcp::socket>> get_connection_ptr() const;
 
     /**
     * @brief Process function

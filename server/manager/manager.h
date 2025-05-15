@@ -150,7 +150,7 @@ public:
      * 
      * @param socket_ptr A shared pointer to the socket to register.
      */
-    void registerConnection(const std::shared_ptr<Connection>& socket_ptr);
+    void registerConnection(const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr);
 
     /**
      * @brief Checks if a socket is registered.
@@ -158,7 +158,8 @@ public:
      * @param socket_ptr A shared pointer to the socket to check.
      * @return true if the socket is registered, false otherwise.
      */
-    [[nodiscard]] bool hasConnection(const std::shared_ptr<Connection>& socket_ptr) const;
+    [[nodiscard]] bool hasConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr) const;
 
     /**
      * @brief Checks if a socket is associated with a specific user ID.
@@ -167,7 +168,9 @@ public:
      * @param user_id The user ID to check against the socket.
      * @return true if the socket is associated with the specified user ID, false otherwise.
      */
-    [[nodiscard]] bool matchUserOfConnection(const std::shared_ptr<Connection>& socket_ptr, UserID user_id) const;
+    [[nodiscard]] bool matchUserOfConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr,
+        UserID user_id) const;
 
     /**
      * @brief Gets the user ID associated with a socket.
@@ -175,7 +178,8 @@ public:
      * @param socket_ptr A shared pointer to the Connection object.
      * @return The user ID associated with the socket.
      */
-    [[nodiscard]] UserID getUserIDOfConnection(const std::shared_ptr<Connection>& socket_ptr) const;
+    [[nodiscard]] UserID getUserIDOfConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr) const;
 
     /**
      * @brief Modifies the user ID associated with a registered socket.
@@ -184,14 +188,17 @@ public:
      * @param user_id The user ID to associate with the socket.
      * @param type The type of device associated with the socket.
      */
-    void modifyUserOfConnection(const std::shared_ptr<Connection>& socket_ptr, UserID user_id, DeviceType type);
+    void modifyUserOfConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr,
+        UserID user_id,
+        DeviceType type);
 
     /**
      * @brief Removes a registered socket.
      * 
      * @param socket_ptr A shared pointer to the socket to remove.
      */
-    void removeConnection(const std::shared_ptr<Connection>& socket_ptr);
+    void removeConnection(const std::shared_ptr<Connection<asio::ip::tcp::socket>>& socket_ptr);
 
     /**
      * @brief Retrieves the SQL process for the server.

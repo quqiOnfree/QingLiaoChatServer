@@ -1,12 +1,14 @@
 #include "network.h"
 
 #include <asio/experimental/awaitable_operators.hpp>
+#include <asio/ip/tcp.hpp>
 #include <logger.hpp>
 #include <system_error>
 #include <Json.h>
 #include <Ini.h>
 
-#include "package.h"
+#include "dataPackage.h"
+#include "package.hpp"
 #include "socketFunctions.h"
 #include "definition.hpp"
 #include "socket.hpp"
@@ -18,6 +20,8 @@ extern Log::Logger serverLogger;
 extern qls::Manager serverManager;
 extern qini::INIObject serverIni;
 
+namespace qls {
+
 using asio::ip::tcp;
 using asio::awaitable;
 using asio::co_spawn;
@@ -28,7 +32,7 @@ using namespace asio;
 using namespace experimental::awaitable_operators;
 using namespace std::chrono_literals;
 
-qls::Network::Network() :
+Network::Network():
     m_port(55555),
     m_thread_num((12 > static_cast<int>(std::thread::hardware_concurrency())
         ? 12 : static_cast<int>(std::thread::hardware_concurrency())))
@@ -36,7 +40,7 @@ qls::Network::Network() :
         m_threads = std::make_unique<std::thread[]>(static_cast<std::size_t>(m_thread_num));
     }
 
-qls::Network::~Network()
+Network::~Network()
 {
     for (int i = 0; i < m_thread_num; i++) {
         if (m_threads[i].joinable())
@@ -44,7 +48,7 @@ qls::Network::~Network()
     }
 }
 
-void qls::Network::setTlsConfig(
+void Network::setTlsConfig(
     std::function<std::shared_ptr<
         ssl::context>()> callback_handle)
 {
@@ -55,7 +59,7 @@ void qls::Network::setTlsConfig(
         throw std::system_error(qls_errc::null_tls_context);
 }
 
-void qls::Network::run(std::string_view host, unsigned short port)
+void Network::run(std::string_view host, unsigned short port)
 {
     m_host = host;
     m_port = port;
@@ -84,36 +88,38 @@ void qls::Network::run(std::string_view host, unsigned short port)
     }
 }
 
-asio::io_context &qls::Network::get_io_context() noexcept
+asio::io_context &Network::get_io_context() noexcept
 {
     return this->m_io_context;
 }
 
-void qls::Network::stop()
+void Network::stop()
 {
     m_io_context.stop();
 }
 
-awaitable<void> qls::Network::echo(ip::tcp::socket origin_socket)
+awaitable<void> Network::echo(ip::tcp::socket origin_socket)
 {
     auto executor = co_await this_coro::executor;
 
     // Check socket
     if (!m_rateLimiter.allow_connection(origin_socket.remote_endpoint().address())) {
-        [[maybe_unused]] std::error_code ec;
-        origin_socket.close(ec);
+        std::error_code ec;
+        ec = origin_socket.close(ec);
         // serverLogger.warning('[', origin_socket.remote_endpoint().address().to_string(), "] is seemly attacking the server!");
         co_return;
     }
 
     // Load SSL socket pointer
-    std::shared_ptr<Connection> connection_ptr = std::allocate_shared<Connection>(
-        std::pmr::polymorphic_allocator<Connection>(&socket_sync_pool),
-        std::move(origin_socket), *m_ssl_context_ptr);
+    std::shared_ptr<Connection<asio::ip::tcp::socket>> connection_ptr =
+        std::allocate_shared<Connection<asio::ip::tcp::socket>>(
+            std::pmr::polymorphic_allocator<Connection<asio::ip::tcp::socket>>(&socket_sync_pool),
+            std::move(origin_socket),
+            *m_ssl_context_ptr);
     // String address for data processing
     std::string addr = socket2ip(connection_ptr->socket);
     // Socket package receiver
-    Package packageReceiver;
+    Package<DataPackage::LengthType> packageReceiver;
     // Register the socket
     serverManager.registerConnection(connection_ptr);
 
@@ -196,7 +202,7 @@ awaitable<void> qls::Network::echo(ip::tcp::socket origin_socket)
     co_return;
 }
 
-awaitable<void> qls::Network::listener()
+awaitable<void> Network::listener()
 {
     auto executor = co_await this_coro::executor;
     tcp::acceptor acceptor(executor, { ip::make_address(m_host), m_port });
@@ -223,13 +229,13 @@ awaitable<void> qls::Network::listener()
     }
 }
 
-inline std::string qls::socket2ip(const qls::Socket& s)
+inline std::string socket2ip(const Socket& s)
 {
     auto ep = s.lowest_layer().remote_endpoint();
     return std::format("{}:{}", ep.address().to_string(), int(ep.port()));
 }
 
-inline std::string qls::showBinaryData(std::string_view data)
+inline std::string showBinaryData(std::string_view data)
 {
     auto isShowableCharacter = [](unsigned char ch) -> bool {
         return 32 <= ch && ch <= 126;
@@ -282,3 +288,5 @@ inline std::string qls::showBinaryData(std::string_view data)
 
     return result;
 }
+
+} // namespace qls

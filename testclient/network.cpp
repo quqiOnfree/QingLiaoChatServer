@@ -19,7 +19,7 @@
 #include <logger.hpp>
 #include <Json.h>
 
-#include <package.h>
+#include <package.hpp>
 #include <dataPackage.h>
 
 namespace qls
@@ -112,7 +112,7 @@ namespace qls
         std::atomic<bool>                       has_stopped;
         std::mutex                              mutex;
         std::condition_variable                 condition_variable;
-        Package                                 package;
+        Package<DataPackage::LengthType>        package;
         asio::ip::tcp::resolver::results_type   endpoints;
         std::string                             input_buffer;
 
@@ -183,7 +183,7 @@ namespace qls
         }
     };
 
-    Network::Network() :
+    Network::Network():
         m_network_impl(std::make_unique<NetworkImpl>())
     {
         m_network_impl->is_running = true;
@@ -216,7 +216,7 @@ namespace qls
         if (m_network_impl->is_receiving) {
             m_network_impl->is_receiving = false;
             std::error_code ignored_error;
-            m_network_impl->socket_ptr->shutdown(ignored_error);
+            ignored_error = m_network_impl->socket_ptr->shutdown(ignored_error);
         }
         m_network_impl->io_context.stop();
         m_network_impl->condition_variable.notify_all();
@@ -239,7 +239,7 @@ namespace qls
         m_network_impl->is_receiving = false;
         {
             std::error_code ignored_error;
-            m_network_impl->socket_ptr->shutdown(ignored_error);
+            ignored_error = m_network_impl->socket_ptr->shutdown(ignored_error);
         }
         m_network_impl->condition_variable.notify_all();
     }
@@ -253,7 +253,7 @@ namespace qls
         if (m_network_impl->is_receiving) {
             m_network_impl->is_receiving = false;
             std::error_code ignored_error;
-            m_network_impl->socket_ptr->shutdown(ignored_error);
+            ignored_error = m_network_impl->socket_ptr->shutdown(ignored_error);
         }
         m_network_impl->io_context.stop();
         m_network_impl->condition_variable.notify_all();
@@ -263,9 +263,11 @@ namespace qls
     {
         if (!m_network_impl->is_receiving)
             throw std::runtime_error("Socket is not able to use");
-        auto wrapper = std::make_shared<StringWrapper>(data);
+        auto wrapper = std::make_unique<StringWrapper>(data);
+        StringWrapper *wrapper_pointer = wrapper.get();
         asio::async_write(*m_network_impl->socket_ptr,
-            asio::buffer(wrapper->data), [wrapper](auto, auto){});
+            asio::buffer(wrapper_pointer->data),
+            [wrapper = std::move(wrapper)](auto, auto){});
     }
 
     std::future<std::shared_ptr<DataPackage>> Network::send_data_with_result_n_option(const std::string& data,
@@ -492,20 +494,20 @@ namespace qls
                     m_network_impl->package.write({ m_network_impl->input_buffer.begin(),
                         m_network_impl->input_buffer.begin() + size });
                     if (m_network_impl->package.canRead())
-                        call_received_stdstring(std::move(
-                            m_network_impl->package.read()));
+                        call_received_stdstring(std::string(std::move(
+                            m_network_impl->package.read())));
                 }
                 co_return;
             } catch (const std::system_error& e) {
                 m_network_impl->is_receiving = false;
                 call_connected_error(e.code());
                 std::error_code ec;
-                m_network_impl->socket_ptr->shutdown(ec);
+                ec = m_network_impl->socket_ptr->shutdown(ec);
             } catch (const std::exception& e) {
                 m_network_impl->is_receiving = false;
                 call_connected_error();
                 std::error_code ec;
-                m_network_impl->socket_ptr->shutdown(ec);
+                ec = m_network_impl->socket_ptr->shutdown(ec);
             }
             asio::steady_timer timer(executor);
             timer.expires_after(10s);

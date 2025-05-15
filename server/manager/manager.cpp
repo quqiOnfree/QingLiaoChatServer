@@ -44,7 +44,7 @@ struct ManagerImpl
     std::pmr::synchronized_pool_resource
                             m_user_sync_pool;
 
-    std::unordered_map<std::shared_ptr<Connection>, UserID>
+    std::unordered_map<std::shared_ptr<Connection<asio::ip::tcp::socket>>, UserID>
                             m_connection_map;
     std::shared_mutex       m_connection_map_mutex;
 
@@ -270,7 +270,8 @@ std::unordered_map<UserID, std::shared_ptr<User>> Manager::getUserList() const
     return m_impl->m_user_map;
 }
 
-void Manager::registerConnection(const std::shared_ptr<Connection> &connection_ptr)
+void Manager::registerConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr)
 {
     std::unique_lock lock(m_impl->m_connection_map_mutex);
     if (m_impl->m_connection_map.find(connection_ptr) != m_impl->m_connection_map.cend())
@@ -278,13 +279,16 @@ void Manager::registerConnection(const std::shared_ptr<Connection> &connection_p
     m_impl->m_connection_map.emplace(connection_ptr, -1ll);
 }
 
-bool Manager::hasConnection(const std::shared_ptr<Connection> &connection_ptr) const
+bool Manager::hasConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr) const
 {
     std::shared_lock lock(m_impl->m_connection_map_mutex);
     return m_impl->m_connection_map.find(connection_ptr) != m_impl->m_connection_map.cend();
 }
 
-bool Manager::matchUserOfConnection(const std::shared_ptr<Connection> &connection_ptr, UserID user_id) const
+bool Manager::matchUserOfConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr,
+    UserID user_id) const
 {
     std::shared_lock lock(m_impl->m_connection_map_mutex);
     auto iter = m_impl->m_connection_map.find(connection_ptr);
@@ -292,7 +296,8 @@ bool Manager::matchUserOfConnection(const std::shared_ptr<Connection> &connectio
     return iter->second == user_id;
 }
 
-UserID Manager::getUserIDOfConnection(const std::shared_ptr<Connection> &connection_ptr) const
+UserID Manager::getUserIDOfConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr) const
 {
     std::shared_lock lock(m_impl->m_connection_map_mutex);
     auto iter = m_impl->m_connection_map.find(connection_ptr);
@@ -301,7 +306,10 @@ UserID Manager::getUserIDOfConnection(const std::shared_ptr<Connection> &connect
     return iter->second;
 }
 
-void Manager::modifyUserOfConnection(const std::shared_ptr<Connection> &connection_ptr, UserID user_id, DeviceType type)
+void Manager::modifyUserOfConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr,
+    UserID user_id,
+    DeviceType type)
 {
     std::unique_lock lock1(m_impl->m_connection_map_mutex, std::defer_lock);
     std::shared_lock lock2(m_impl->m_user_map_mutex, std::defer_lock);
@@ -320,7 +328,8 @@ void Manager::modifyUserOfConnection(const std::shared_ptr<Connection> &connecti
     iter->second = user_id;
 }
 
-void Manager::removeConnection(const std::shared_ptr<Connection> &connection_ptr)
+void Manager::removeConnection(
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr)
 {
     std::unique_lock lock1(m_impl->m_connection_map_mutex, std::defer_lock);
     std::shared_lock lock2(m_impl->m_user_map_mutex, std::defer_lock);

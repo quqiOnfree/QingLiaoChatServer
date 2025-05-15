@@ -5,12 +5,12 @@
 #include <logger.hpp>
 #include <Json.h>
 
+#include "dataPackage.h"
 #include "userid.hpp"
 #include "manager.h"
 #include "returnStateMessage.hpp"
 #include "JsonMsgProcess.h"
 #include "qls_error.h"
-#include "package.h"
 
 extern Log::Logger serverLogger;
 extern qls::Manager serverManager;
@@ -21,14 +21,12 @@ namespace qls
 struct SocketServiceImpl
 {
     // socket ptr
-    std::shared_ptr<Connection> m_connection_ptr;
+    std::shared_ptr<Connection<asio::ip::tcp::socket>> m_connection_ptr;
     // JsonMsgProcess
-    JsonMessageProcess      m_jsonProcess;
-    // package
-    qls::Package            m_package;
+    JsonMessageProcess          m_jsonProcess;
 };
 
-SocketService::SocketService(std::shared_ptr<Connection> connection_ptr) :
+SocketService::SocketService(std::shared_ptr<Connection<asio::ip::tcp::socket>> connection_ptr) :
     m_impl(std::make_unique<SocketServiceImpl>(connection_ptr, UserID(-1)))
 {
     if (!connection_ptr)
@@ -37,7 +35,7 @@ SocketService::SocketService(std::shared_ptr<Connection> connection_ptr) :
 
 SocketService::~SocketService() noexcept = default;
 
-std::shared_ptr<Connection> SocketService::get_connection_ptr() const
+std::shared_ptr<Connection<asio::ip::tcp::socket>> SocketService::get_connection_ptr() const
 {
     return m_impl->m_connection_ptr;
 }

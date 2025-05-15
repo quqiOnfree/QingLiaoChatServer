@@ -53,7 +53,7 @@ struct UserImpl
                                     m_user_group_verification_map; ///< User's group verification map
     std::shared_mutex               m_user_group_verification_map_mutex; ///< Mutex for thread-safe access to group verification map
 
-    std::unordered_map<std::shared_ptr<Connection>, DeviceType>
+    std::unordered_map<std::shared_ptr<Connection<asio::ip::tcp::socket>>, DeviceType>
                                     m_connection_map; ///< Map of sockets associated with the user
     std::shared_mutex               m_connection_map_mutex; ///< Mutex for thread-safe access to socket map
 
@@ -564,7 +564,7 @@ std::multimap<GroupID, Verification::GroupVerification>
 }
 
 void User::addConnection(
-    const std::shared_ptr<Connection> &connection_ptr,
+    const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr,
     DeviceType type)
 {
     std::unique_lock
@@ -575,13 +575,13 @@ void User::addConnection(
     m_impl->m_connection_map.emplace(connection_ptr, type);
 }
 
-bool User::hasConnection(const std::shared_ptr<Connection> &connection_ptr) const
+bool User::hasConnection(const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr) const
 {
     std::shared_lock lock(m_impl->m_connection_map_mutex);
     return m_impl->m_connection_map.find(connection_ptr) != m_impl->m_connection_map.cend();
 }
 
-void User::modifyConnectionType(const std::shared_ptr<Connection> &connection_ptr, DeviceType type)
+void User::modifyConnectionType(const std::shared_ptr<Connection<asio::ip::tcp::socket>> &connection_ptr, DeviceType type)
 {
     std::unique_lock lock(m_impl->m_connection_map_mutex);
     auto iter = m_impl->m_connection_map.find(connection_ptr);
@@ -591,7 +591,7 @@ void User::modifyConnectionType(const std::shared_ptr<Connection> &connection_pt
     iter->second = type;
 }
 
-void User::removeConnection(const std::shared_ptr<Connection>& connection_ptr)
+void User::removeConnection(const std::shared_ptr<Connection<asio::ip::tcp::socket>>& connection_ptr)
 {
     std::unique_lock lock(m_impl->m_connection_map_mutex);
     auto iter = m_impl->m_connection_map.find(connection_ptr);

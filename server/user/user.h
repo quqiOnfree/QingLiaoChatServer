@@ -127,7 +127,7 @@ public:
      * @return true if user has the socket, false otherwise.
      */
     [[nodiscard]] bool hasConnection(
-        const std::shared_ptr<qls::Connection>& connection_ptr) const;
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& connection_ptr) const;
 
     /**
      * @brief Modifies the type of a socket in the user's socket map.
@@ -135,7 +135,7 @@ public:
      * @param type New DeviceType associated with the socket.
      */
     void modifyConnectionType(
-        const std::shared_ptr<qls::Connection>& connection_ptr,
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& connection_ptr,
         DeviceType type);
 
     /**
@@ -204,13 +204,16 @@ public:
      * @param connection_ptr Pointer to the socket to add.
      * @param type DeviceType associated with the socket.
      */
-    void addConnection(const std::shared_ptr<qls::Connection>& connection_ptr, DeviceType type);
+    void addConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& connection_ptr,
+        DeviceType type);
 
     /**
      * @brief Removes a socket from the user's socket map.
      * @param connection_ptr Pointer to the socket to remove.
      */
-    void removeConnection(const std::shared_ptr<qls::Connection>& connection_ptr);
+    void removeConnection(
+        const std::shared_ptr<Connection<asio::ip::tcp::socket>>& connection_ptr);
 
 private:
     std::unique_ptr<UserImpl, UserImplDeleter> m_impl;

@@ -72,7 +72,7 @@ public:
      * @brief Converts this data package to a binary string.
      * @return Binary data representing this data package.
      */
-    [[nodiscard]] std::string packageToString() noexcept;
+    [[nodiscard]] std::string packageToString() const noexcept;
 
     /**
      * @brief Gets the size of this data package.
