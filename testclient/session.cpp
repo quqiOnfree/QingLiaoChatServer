@@ -48,7 +48,9 @@ Session::~Session() noexcept = default;
 bool Session::registerUser(std::string_view email, std::string_view password, UserID& newUserID)
 {
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("register", {{"email", email}, {"password", password}}).to_string(),
+        makeJsonFunctionDataPackage("register",
+            {{"email", email},
+            {"password", password}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -64,7 +66,9 @@ bool Session::loginUser(UserID user_id, std::string_view password)
 {
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
         makeJsonFunctionDataPackage("login",
-            {{"user_id", user_id.getOriginValue()}, {"password", password}, {"device", "PersonalComputer"}}).to_string(),
+            {{"user_id", user_id.getOriginValue()},
+            {"password", password},
+            {"device", "PersonalComputer"}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -84,7 +88,8 @@ bool Session::createFriendApplication(UserID user_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("add_friend", {{"user_id", user_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("add_friend",
+            {{"user_id", user_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -98,7 +103,8 @@ bool Session::applyFriendApplication(UserID user_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("accept_friend_verification", {{"user_id", user_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("accept_friend_verification",
+            {{"user_id", user_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -112,7 +118,8 @@ bool Session::rejectFriendApplication(UserID user_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("reject_friend_verification", {{"user_id", user_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("reject_friend_verification",
+            {{"user_id", user_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -140,7 +147,8 @@ bool Session::createGroupApplication(GroupID group_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("add_group", {{"group_id", group_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("add_group",
+            {{"group_id", group_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -218,7 +226,8 @@ bool Session::removeFriend(UserID user_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("remove_friend", {{"user_id", user_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("remove_friend",
+            {{"user_id", user_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();
@@ -232,7 +241,8 @@ bool Session::leaveGroup(GroupID group_id)
     if (!m_impl->has_login)
         return false;
     auto returnPackage = m_impl->network.send_data_with_result_n_option(
-        makeJsonFunctionDataPackage("leave_group", {{"group_id", group_id.getOriginValue()}}).to_string(),
+        makeJsonFunctionDataPackage("leave_group",
+            {{"group_id", group_id.getOriginValue()}}).to_string(),
         [](std::shared_ptr<qls::DataPackage>& package){
             package->type = DataPackage::Text;
         }).get();

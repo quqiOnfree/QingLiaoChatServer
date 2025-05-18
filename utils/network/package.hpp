@@ -28,10 +28,10 @@ public:
     ~Package() noexcept = default;
 
     Package(const Package&) = delete;
-    Package(Package&&) = delete;
+    Package(Package&&) = default;
 
     Package& operator=(const Package&) = delete;
-    Package& operator=(Package&&) = delete;
+    Package& operator=(Package&&) = default;
 
     /**
      * @brief Writes data into the class.
@@ -76,18 +76,47 @@ public:
      * @brief Reads a data package.
      * @return The data package.
      */
-    [[nodiscard]] std::pmr::string read()
+    [[nodiscard]] std::string read()
     {
         if (!canRead())
             throw std::system_error(qls_errc::incomplete_package);
         else if (!firstMsgLength())
             throw std::system_error(qls_errc::empty_length);
 
-        std::pmr::string result = { m_buffer.substr(0, firstMsgLength()),
-                                    &local_sync_package_pool };
+        std::string result = { m_buffer.begin(), m_buffer.begin() + firstMsgLength() };
         m_buffer.erase(0, firstMsgLength());
 
         return result;
+    }
+
+    /**
+     * @brief Retrieves the original data by populating the provided buffer.
+     * @param buffer The target string to store the data.
+     */
+    void read(std::string& buffer)
+    {
+        if (!canRead())
+            throw std::system_error(qls_errc::incomplete_package);
+        else if (!firstMsgLength())
+            throw std::system_error(qls_errc::empty_length);
+
+        buffer.assign(m_buffer.begin(), m_buffer.begin() + firstMsgLength());
+        m_buffer.erase(0, firstMsgLength());
+    }
+
+    /**
+     * @brief Retrieves the original data by populating the provided buffer.
+     * @param buffer The target string to store the data.
+     */
+    void read(std::pmr::string& buffer)
+    {
+        if (!canRead())
+            throw std::system_error(qls_errc::incomplete_package);
+        else if (!firstMsgLength())
+            throw std::system_error(qls_errc::empty_length);
+
+        buffer.assign(m_buffer.begin(), m_buffer.begin() + firstMsgLength());
+        m_buffer.erase(0, firstMsgLength());
     }
 
     /**

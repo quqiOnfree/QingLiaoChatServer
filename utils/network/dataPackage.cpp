@@ -1,5 +1,6 @@
 #include "dataPackage.h"
 
+#include <string>
 #include <system_error>
 #include <cstring>
 #include <memory_resource>
@@ -78,7 +79,7 @@ std::shared_ptr<DataPackage> DataPackage::stringToPackage(std::string_view data)
     return package;
 }
 
-std::string DataPackage::packageToString() const noexcept
+std::string DataPackage::packageToString() const
 {
     using namespace qls;
     std::string strdata;
@@ -102,27 +103,32 @@ std::string DataPackage::packageToString() const noexcept
     return strdata;
 }
 
-std::size_t DataPackage::getPackageSize() noexcept
+std::size_t DataPackage::getPackageSize() const noexcept
 {
-    LengthType size = 0;
-    std::memcpy(&size, &(this->length), sizeof(LengthType));
-    return std::size_t(size);
+    return static_cast<std::size_t>(this->length);
 }
 
-std::size_t DataPackage::getDataSize() noexcept
+std::size_t DataPackage::getDataSize() const noexcept
 {
-    LengthType size = 0;
-    std::memcpy(&size, &(this->length), sizeof(LengthType));
-    return std::size_t(size) - sizeof(DataPackage);
+    return static_cast<std::size_t>(this->length) - sizeof(DataPackage);
 }
 
-std::string DataPackage::getData()
+std::string DataPackage::getData() const
 {
-    std::string data;
-    std::size_t size = this->getDataSize();
-    data.resize(size);
-    std::memcpy(data.data(), this->data, size);
-    return data;
+    return {reinterpret_cast<const char*>(this->data),
+        this->getDataSize()};
+}
+
+void DataPackage::getData(std::string& data) const
+{
+    data.assign(reinterpret_cast<const char*>(this->data),
+        this->getDataSize());
+}
+
+void DataPackage::getData(std::pmr::string& data) const
+{
+    data.assign(reinterpret_cast<const char*>(this->data),
+        this->getDataSize());
 }
 
 } // namespace qls

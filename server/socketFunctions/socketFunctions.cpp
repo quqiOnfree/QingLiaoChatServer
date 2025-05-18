@@ -50,8 +50,7 @@ asio::awaitable<void> SocketService::process(
         DataPackage::DataPackageType type = DataPackage::Unknown,
         int sequence = 0,
         int sequenceSize = 1) -> asio::awaitable<std::size_t> {
-            std::string out(data);
-            auto pack = qls::DataPackage::makePackage(out);
+            auto pack = qls::DataPackage::makePackage(data);
             pack->requestID = requestID;
             pack->sequence = sequence;
             pack->type = type;

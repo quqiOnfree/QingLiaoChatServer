@@ -2,7 +2,9 @@
 
 #include <asio/experimental/awaitable_operators.hpp>
 #include <asio/ip/tcp.hpp>
+#include <chrono>
 #include <logger.hpp>
+#include <string>
 #include <system_error>
 #include <Json.h>
 #include <Ini.h>
@@ -106,14 +108,14 @@ awaitable<void> Network::echo(ip::tcp::socket origin_socket)
     if (!m_rateLimiter.allow_connection(origin_socket.remote_endpoint().address())) {
         std::error_code ec;
         ec = origin_socket.close(ec);
-        // serverLogger.warning('[', origin_socket.remote_endpoint().address().to_string(), "] is seemly attacking the server!");
         co_return;
     }
 
     // Load SSL socket pointer
     std::shared_ptr<Connection<asio::ip::tcp::socket>> connection_ptr =
         std::allocate_shared<Connection<asio::ip::tcp::socket>>(
-            std::pmr::polymorphic_allocator<Connection<asio::ip::tcp::socket>>(&socket_sync_pool),
+            std::pmr::polymorphic_allocator<
+                Connection<asio::ip::tcp::socket>>(&socket_sync_pool),
             std::move(origin_socket),
             *m_ssl_context_ptr);
     // String address for data processing
@@ -127,7 +129,7 @@ awaitable<void> Network::echo(ip::tcp::socket origin_socket)
         serverLogger.info(std::format("[{}] connected to the server", addr));
 
         // timeout function
-        auto timeout = [](const std::chrono::steady_clock::duration& duration) -> awaitable<void> {
+        auto timeout = [](const std::chrono::nanoseconds& duration) -> awaitable<void> {
             steady_timer timer(co_await this_coro::executor);
             timer.expires_after(duration);
             co_await timer.async_wait(asio::use_awaitable);
@@ -135,22 +137,27 @@ awaitable<void> Network::echo(ip::tcp::socket origin_socket)
         };
 
         // SSL handshake
-        co_await (connection_ptr->socket.async_handshake(ssl::stream_base::server, use_awaitable) || timeout(10s));
+        co_await (connection_ptr->socket.async_handshake(
+            ssl::stream_base::server,
+            use_awaitable) || timeout(10s));
 
         char data[8192] {0};
         SocketService socketService(connection_ptr);
         long long heart_beat_times = 0;
         auto heart_beat_time_point = std::chrono::steady_clock::now();
+        std::pmr::string data_buffer(&socket_sync_pool);
         while (true) {
             try {
                 do {
-                    std::size_t n = std::get<0>(co_await (connection_ptr->socket.async_read_some(buffer(data),
+                    std::size_t n = std::get<0>(
+                        co_await (connection_ptr->socket.async_read_some(buffer(data),
                         bind_executor(connection_ptr->strand, use_awaitable)) || timeout(60s)));
                     // serverLogger.info((std::format("[{}] received message: {}", addr, showBinaryData({data, n}))));
                     packageReceiver.write({ data, n });
                 } while (!packageReceiver.canRead());
 
-                auto pack = DataPackage::stringToPackage(packageReceiver.read());
+                packageReceiver.read(data_buffer);
+                auto pack = DataPackage::stringToPackage(data_buffer);
                 if (pack->type == DataPackage::HeartBeat) {
                     // Heartbeat package
                     heart_beat_times++;
@@ -169,7 +176,8 @@ awaitable<void> Network::echo(ip::tcp::socket origin_socket)
                     }
                     continue;
                 }
-                co_await socketService.process(pack->getData(), pack);
+                pack->getData(data_buffer);
+                co_await socketService.process(data_buffer, pack);
                 continue;
             } catch (const std::system_error& e) {
                 const auto& errc = e.code();
@@ -205,7 +213,8 @@ awaitable<void> Network::echo(ip::tcp::socket origin_socket)
 awaitable<void> Network::listener()
 {
     auto executor = co_await this_coro::executor;
-    tcp::acceptor acceptor(executor, { ip::make_address(m_host), m_port });
+    tcp::acceptor acceptor(executor,
+        { ip::make_address(m_host), m_port });
 
     // SYN anti-attack & Dos anti-attack
     acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
@@ -232,7 +241,9 @@ awaitable<void> Network::listener()
 inline std::string socket2ip(const Socket& s)
 {
     auto ep = s.lowest_layer().remote_endpoint();
-    return std::format("{}:{}", ep.address().to_string(), int(ep.port()));
+    return std::format("{}:{}",
+        ep.address().to_string(),
+        static_cast<unsigned int>(ep.port()));
 }
 
 inline std::string showBinaryData(std::string_view data)
@@ -249,12 +260,13 @@ inline std::string showBinaryData(std::string_view data)
             std::string hex;
             int locch = static_cast<unsigned char>(i);
             while (locch) {
-                if (locch % 16 < 10) {
-                    hex += ('0' + (locch % 16));
-                    locch /= 16;
+                int result = locch & 0xF;
+                if (result < 10) {
+                    hex += ('0' + (result));
+                    locch >>= 4;
                     continue;
                 }
-                switch (locch % 16) {
+                switch (result) {
                 case 10:
                     hex += 'a';
                     break;
@@ -274,7 +286,7 @@ inline std::string showBinaryData(std::string_view data)
                     hex += 'f';
                     break;
                 }
-                locch /= 16;
+                locch >>= 4;
             }
 
             if (hex.empty())

@@ -72,25 +72,47 @@ public:
      * @brief Converts this data package to a binary string.
      * @return Binary data representing this data package.
      */
-    [[nodiscard]] std::string packageToString() const noexcept;
+    [[nodiscard]] std::string packageToString() const;
 
     /**
      * @brief Gets the size of this data package.
      * @return Size of this data package.
      */
-    [[nodiscard]] std::size_t getPackageSize() noexcept;
+    [[nodiscard]] std::size_t getPackageSize() const noexcept;
 
     /**
      * @brief Gets the size of the original data in this data package.
      * @return Size of the original data in this data package.
      */
-    [[nodiscard]] std::size_t getDataSize() noexcept;
+    [[nodiscard]] std::size_t getDataSize() const noexcept;
 
     /**
      * @brief Gets the original data in this data package.
      * @return Original data in this data package.
      */
-    [[nodiscard]] std::string getData();
+    [[nodiscard]] std::string getData() const;
+
+    /**
+     * @brief Retrieves the original data by populating the provided buffer.
+     * @param[out] buffer The target string to store the data. 
+     *                    - Existing contents will be cleared and overwritten.
+     *                    - For optimal performance with large data, pre-allocate capacity 
+     *                      via `buffer.reserve()` to avoid reallocations.
+     * @throw std::bad_alloc If memory allocation fails during buffer resize.
+     */
+    void getData(std::string& buffer) const;
+
+    /**
+     * @brief Retrieves the original data by populating the provided PMR-enabled buffer.
+     * @param[out] buffer The target `std::pmr::string` to store the data.
+     *                    - Existing contents will be **cleared and overwritten**.
+     *                    - Uses the buffer's **associated memory resource** (e.g., memory pool or arena).
+     *                    - For optimal performance, pre-allocate capacity via `buffer.reserve()`.
+     * @note This overload requires C++17 or later and is intended for advanced memory management scenarios.
+     *       Ensure the buffer's allocator matches the desired memory strategy (e.g., monotonic or pooled).
+     * @throw std::bad_alloc If the buffer's allocator fails to allocate memory.
+     */
+    void getData(std::pmr::string& buffer) const;
 };
 
 } // namespace qls
