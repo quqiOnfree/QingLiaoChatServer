@@ -16,13 +16,13 @@ extern qls::Manager serverManager;
 namespace qls {
 
 struct FriendVerification {
-  const UserID &applicator;
-  const UserID &controller;
+  UserID applicator;
+  UserID controller;
 };
 
 struct GroupVerification {
-  const UserID &applicator;
-  const GroupID &controller;
+  UserID applicator;
+  GroupID controller;
 };
 
 } // namespace qls
@@ -347,8 +347,7 @@ void VerificationManager::removeGroupRoomVerification(const UserID &sender,
 
     m_impl->m_groupVerification_map.erase(iter);
   }
-  const UserID &adminID =
-      serverManager.getGroupRoom(receiver)->getAdministrator();
+  UserID adminID = serverManager.getGroupRoom(receiver)->getAdministrator();
   serverManager.getUser(adminID)->removeGroupVerification(receiver, sender);
   serverManager.getUser(sender)->removeGroupVerification(receiver, sender);
 }
