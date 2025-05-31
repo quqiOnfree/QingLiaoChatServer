@@ -295,7 +295,7 @@ public:
   ~SendFriendMessageCommand() = default;
 
   const std::vector<JsonOption> &getOption() const {
-    static std::vector<JsonOption> vec = {{"friend_id", qjson::JInt},
+    static std::vector<JsonOption> vec = {{"user_id", qjson::JInt},
                                           {"message", qjson::JString}};
     return vec;
   }

@@ -51,16 +51,16 @@ qjson::JObject SearchUserCommand::execute(UserID executor,
 
 qjson::JObject AddFriendCommand::execute(UserID executor,
                                          qjson::JObject parameters) {
-  UserID friend_id = UserID(parameters["user_id"].getInt());
+  UserID user_id = UserID(parameters["user_id"].getInt());
 
-  if (!serverManager.hasUser(friend_id)) {
+  if (!serverManager.hasUser(user_id)) {
     return makeErrorMessage("UserID is invalid!");
   }
 
-  if (serverManager.getUser(executor)->addFriend(friend_id)) {
+  if (serverManager.getUser(executor)->addFriend(user_id)) {
     serverLogger.debug("User ", executor.getOriginValue(),
                        " sent a friend request to user ",
-                       friend_id.getOriginValue());
+                       user_id.getOriginValue());
     return makeSuccessMessage("Successfully sent application!");
   }
   return makeErrorMessage("Can't send application");
@@ -239,24 +239,24 @@ GetGroupVerificationListCommand::execute(UserID executor,
 
 qjson::JObject SendFriendMessageCommand::execute(UserID executor,
                                                  qjson::JObject parameters) {
-  UserID friend_id = UserID(parameters["friend_id"].getInt());
+  UserID user_id = UserID(parameters["user_id"].getInt());
   std::string msg = parameters["message"].getString();
 
-  if (!serverManager.hasUser(friend_id)) {
+  if (!serverManager.hasUser(user_id)) {
     return makeErrorMessage("UserID is invalid!");
   }
 
-  if (!serverManager.getUser(executor)->userHasFriend(friend_id)) {
+  if (!serverManager.getUser(executor)->userHasFriend(user_id)) {
     return makeErrorMessage("You don't have this friend!");
   }
 
   // sending a message
   serverManager
-      .getPrivateRoom(serverManager.getPrivateRoomId(executor, friend_id))
+      .getPrivateRoom(serverManager.getPrivateRoomId(executor, user_id))
       ->sendMessage(msg, executor);
 
   serverLogger.debug("User ", executor.getOriginValue(),
-                     " sent a message to user ", friend_id.getOriginValue());
+                     " sent a message to user ", user_id.getOriginValue());
 
   return makeSuccessMessage("Successfully sent a message!");
 }

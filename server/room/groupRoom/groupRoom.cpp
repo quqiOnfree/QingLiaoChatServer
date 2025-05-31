@@ -66,6 +66,8 @@ GroupRoom::GroupRoom(const GroupID &group_id, const UserID &administrator,
   // }
   m_impl->m_can_be_used = true;
 
+  m_impl->m_user_id_map.emplace(
+      administrator, serverManager.getUser(administrator)->getUserName());
   TextDataRoom::joinRoom(administrator);
   asio::co_spawn(serverManager.getServerNetwork().get_io_context(),
                  auto_clean(), asio::detached);

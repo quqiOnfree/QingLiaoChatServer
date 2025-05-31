@@ -269,7 +269,7 @@ bool User::addFriend(const UserID &friend_user_id) {
   }
 
   // check if they are friends
-  if (!serverManager.hasPrivateRoom(self_id, friend_user_id)) {
+  if (serverManager.hasPrivateRoom(self_id, friend_user_id)) {
     return false;
   }
 
@@ -293,7 +293,7 @@ bool User::acceptFriend(const UserID &friend_user_id) {
   UserID self_id = this->getUserID();
   if (self_id == friend_user_id || !serverManager.hasUser(friend_user_id) ||
       !serverManager.getServerVerificationManager().hasFriendRoomVerification(
-          self_id, friend_user_id)) {
+          friend_user_id, self_id)) {
     return false;
   }
 
@@ -312,16 +312,12 @@ bool User::rejectFriend(const UserID &friend_user_id) {
   UserID self_id = this->getUserID();
   if (self_id == friend_user_id || !serverManager.hasUser(friend_user_id) ||
       !serverManager.getServerVerificationManager().hasFriendRoomVerification(
-          self_id, friend_user_id)) {
+          friend_user_id, self_id)) {
     return false;
   }
 
-  try {
-    serverManager.getServerVerificationManager().removeFriendRoomVerification(
-        self_id, friend_user_id);
-  } catch (...) {
-    return false;
-  }
+  serverManager.getServerVerificationManager().rejectFriendVerification(
+      friend_user_id, self_id);
 
   // notify them to remove the friend verification
   // (someone reject to add a friend)

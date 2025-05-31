@@ -109,7 +109,7 @@ void VerificationManager::applyFriendRoomVerification(const UserID &sender,
   }
 
   // check if they are friends
-  if (!serverManager.hasPrivateRoom(sender, receiver)) {
+  if (serverManager.hasPrivateRoom(sender, receiver)) {
     throw std::system_error(qls_errc::private_room_existed);
   }
 

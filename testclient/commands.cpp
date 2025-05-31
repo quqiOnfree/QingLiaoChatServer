@@ -111,10 +111,10 @@ public:
   }
 };
 
-class ApplyFriendApplicationCommand : public Command {
+class AcceptFriendApplicationCommand : public Command {
 public:
-  ApplyFriendApplicationCommand() = default;
-  ~ApplyFriendApplicationCommand() = default;
+  AcceptFriendApplicationCommand() = default;
+  ~AcceptFriendApplicationCommand() = default;
 
   opt::Option getOption() const {
     opt::Option opt;
@@ -183,10 +183,10 @@ public:
   }
 };
 
-class ApplyGroupApplicationCommand : public Command {
+class AcceptGroupApplicationCommand : public Command {
 public:
-  ApplyGroupApplicationCommand() = default;
-  ~ApplyGroupApplicationCommand() = default;
+  AcceptGroupApplicationCommand() = default;
+  ~AcceptGroupApplicationCommand() = default;
 
   opt::Option getOption() const {
     opt::Option opt;
@@ -313,16 +313,16 @@ CommandManager::CommandManager() {
 
   addCommand("createFriendApplication",
              std::make_shared<CreateFriendApplicationCommand>());
-  addCommand("applyFriendApplication",
-             std::make_shared<ApplyFriendApplicationCommand>());
+  addCommand("acceptFriendApplication",
+             std::make_shared<AcceptFriendApplicationCommand>());
   addCommand("rejectFriendApplication",
              std::make_shared<RejectFriendApplicationCommand>());
 
   addCommand("createGroup", std::make_shared<CreateGroupCommand>());
   addCommand("createGroupApplication",
              std::make_shared<CreateGroupApplicationCommand>());
-  addCommand("applyGroupApplication",
-             std::make_shared<ApplyGroupApplicationCommand>());
+  addCommand("acceptGroupApplication",
+             std::make_shared<AcceptGroupApplicationCommand>());
   addCommand("rejectGroupApplication",
              std::make_shared<RejectGroupApplicationCommand>());
 
