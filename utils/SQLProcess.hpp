@@ -140,8 +140,8 @@ public:
    * @return std::future to get the result of the function.
    */
   template <typename Func, typename... Args>
-  auto submit(Func &&func,
-              Args &&...args) -> std::future<decltype(func(args...))> {
+  auto submit(Func &&func, Args &&...args)
+      -> std::future<decltype(func(args...))> {
     return submit(asio::use_future, std::forward<Func>(func),
                   std::forward<Args>(args)...);
   }

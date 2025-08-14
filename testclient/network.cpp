@@ -149,11 +149,14 @@ struct NetworkImpl {
         asio::ssl::context::single_dh_use);
 
     // 设置是否验证cert
+#ifdef _DEBUG
     ssl_context.set_verify_mode(asio::ssl::verify_none);
     ssl_context.set_verify_callback(
         std::bind(&NetworkImpl::verify_certificate, this, _1, _2));
-    // ssl_context.set_verify_mode(asio::ssl::verify_peer);
-    // ssl_context.set_verify_callback(ssl::rfc2818_verification("host.name"));
+#else
+    ssl_context.set_verify_mode(asio::ssl::verify_peer);
+    ssl_context.set_verify_callback(ssl::rfc2818_verification("host.name"));
+#endif
 
     socket_ptr = std::make_shared<ssl_socket>(io_context, ssl_context);
   }
