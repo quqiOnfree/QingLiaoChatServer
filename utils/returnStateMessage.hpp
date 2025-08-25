@@ -19,8 +19,8 @@ namespace qls {
   qjson::JObject json; // Create a JSON object
 
   // Set "state" and "message" fields in the JSON object
-  json["state"] = std::string_view(state);
-  json["message"] = std::string_view(msg);
+  json["state"] = state;
+  json["message"] = msg;
 
   return json; // Return the constructed JSON object
 }

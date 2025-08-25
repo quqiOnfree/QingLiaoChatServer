@@ -2,7 +2,9 @@
 #define STRING_PARAM_HPP
 
 #include <cassert>
+#include <iterator>
 #include <memory_resource>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -10,22 +12,33 @@
 
 namespace qls {
 
-template <typename Alloc> class base_string_param {
+template <typename Alloc> class basic_string_param {
 public:
-  base_string_param(std::string_view view) : is_owned_(false), view_(view) {}
+  basic_string_param(std::string_view view) : is_owned_(false), view_(view) {}
 
-  base_string_param(
+  basic_string_param(
       const std::basic_string<char, std::char_traits<char>, Alloc> &str)
       : is_owned_(false), view_(str) {}
 
-  base_string_param(
+  basic_string_param(
       std::basic_string<char, std::char_traits<char>, Alloc> &&str)
-      : is_owned_(true), buffer_(str) {}
+      : is_owned_(true), buffer_(std::move(str)) {}
 
-  base_string_param(const base_string_param &) = delete;
-  base_string_param &operator=(const base_string_param &) = delete;
-  base_string_param(base_string_param &&) = default;
-  base_string_param &operator=(base_string_param &&) = default;
+  basic_string_param(const basic_string_param &) = delete;
+  basic_string_param &operator=(const basic_string_param &) = delete;
+
+  basic_string_param(basic_string_param &&str)
+      : is_owned_(str.is_owned_), view_(str.view_),
+        buffer_(std::move(str.buffer_)) {}
+
+  basic_string_param &operator=(basic_string_param &&str) {
+    if (this != &str) {
+      is_owned_ = str.is_owned_;
+      view_ = str.view_;
+      buffer_ = std::move(str.buffer_);
+    }
+    return *this;
+  }
 
   std::size_t size() const {
     if (is_owned_) {
@@ -57,8 +70,8 @@ public:
 
   std::basic_string<char, std::char_traits<char>, Alloc> extract() && {
     if (is_owned_) {
-      return std::visit([](auto &&s) { return std::move(s); },
-                        std::move(buffer_));
+      return std::get<std::basic_string<char, std::char_traits<char>, Alloc>>(
+          std::move(buffer_));
     } else {
       throw std::logic_error("Cannot extract from non-owned string_param");
     }
@@ -69,6 +82,10 @@ private:
   std::basic_string<char, std::char_traits<char>, Alloc> buffer_;
   bool is_owned_;
 };
+
+using stdstring_param = basic_string_param<std::allocator<char>>;
+using pmrstring_param =
+    basic_string_param<std::pmr::polymorphic_allocator<char>>;
 
 class string_param {
 public:
@@ -83,23 +100,26 @@ public:
   string_param(std::pmr::string &&str)
       : is_owned_(true), buffer_(std::move(str)) {}
 
+  template <typename It, std::sentinel_for<It> S>
+  string_param(It first, S last) : is_owned_(false), view_(first, last) {}
+
   template <std::size_t N>
   string_param(const char (&str)[N], std::size_t size = N - 1)
       : is_owned_(false), view_(str, size) {
     assert(size < N);
   }
 
-  string_param(const string_param &str)
-      : is_owned_(str.is_owned_), view_(str.view_), buffer_(str.buffer_) {}
-
-  string_param &operator=(const string_param &str) {
-    if (this != &str) {
-      is_owned_ = str.is_owned_;
-      view_ = str.view_;
-      buffer_ = str.buffer_;
+  string_param(const char *str) {
+    if (str) {
+      is_owned_ = false;
+      view_ = std::string_view(str);
+    } else {
+      throw std::invalid_argument("Null pointer passed to string_param");
     }
-    return *this;
   }
+
+  string_param(const string_param &) = delete;
+  string_param &operator=(const string_param &) = delete;
 
   string_param(string_param &&str)
       : is_owned_(str.is_owned_), view_(str.view_),
@@ -131,6 +151,13 @@ public:
 
   bool is_owned() const { return is_owned_; }
 
+  bool is_std() const {
+    if (is_owned_) {
+      return std::holds_alternative<std::string>(buffer_);
+    }
+    return false;
+  }
+
   bool is_pmr() const {
     if (is_owned_) {
       return std::holds_alternative<std::pmr::string>(buffer_);
@@ -138,18 +165,46 @@ public:
     return false;
   }
 
-  std::string extract() && {
+  template <typename T,
+            typename = std::enable_if_t<std::is_same_v<T, std::string> ||
+                                        std::is_same_v<T, std::pmr::string>>>
+  T extract() && {
     if (is_owned_) {
-      return std::get<std::string>(std::move(buffer_));
+      return std::get<T>(std::move(buffer_));
     }
     throw std::logic_error("Cannot extract from non-owned string_param");
   }
 
+  std::string extract_std() && {
+    return std::move(*this).extract<std::string>();
+  }
+
   std::pmr::string extract_pmr() && {
-    if (is_owned_) {
-      return std::get<std::pmr::string>(std::move(buffer_));
-    }
-    throw std::logic_error("Cannot extract from non-owned string_param");
+    return std::move(*this).extract<std::pmr::string>();
+  }
+
+  friend bool operator==(const string_param &lhs, const string_param &rhs) {
+    return std::string_view(lhs) == std::string_view(rhs);
+  }
+
+  friend bool operator<(const string_param &lhs, const string_param &rhs) {
+    return std::string_view(lhs) < std::string_view(rhs);
+  }
+
+  friend bool operator!=(const string_param &lhs, const string_param &rhs) {
+    return !(lhs == rhs);
+  }
+
+  friend bool operator<=(const string_param &lhs, const string_param &rhs) {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>(const string_param &lhs, const string_param &rhs) {
+    return rhs < lhs;
+  }
+
+  friend bool operator>=(const string_param &lhs, const string_param &rhs) {
+    return !(lhs < rhs);
   }
 
 private:
@@ -159,5 +214,18 @@ private:
 };
 
 } // namespace qls
+
+namespace std {
+template <> struct formatter<qls::string_param, char> {
+  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const qls::string_param &str_param, FormatContext &ctx) const {
+    return std::ranges::copy(std::string_view(str_param), ctx.out()).out;
+  }
+};
+} // namespace std
 
 #endif // !STRING_PARAM_HPP

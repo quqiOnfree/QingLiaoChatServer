@@ -65,22 +65,22 @@ void TCPRoom::leaveRoom(UserID user_id) {
   m_impl->m_user_map.erase(iter);
 }
 
-void TCPRoom::sendData(std::string_view data) {
+void TCPRoom::sendData(string_param data) {
   std::shared_lock lock(m_impl->m_user_map_mutex);
 
   for (const auto &[user_id, user_ptr] : std::as_const(m_impl->m_user_map)) {
     if (!user_ptr.expired()) {
-      user_ptr.lock()->notifyAll(data);
+      user_ptr.lock()->notifyAll(std::string_view(data));
     }
   }
 }
 
-void TCPRoom::sendData(std::string_view data, UserID user_id) {
+void TCPRoom::sendData(string_param data, UserID user_id) {
   std::shared_lock lock(m_impl->m_user_map_mutex);
   if (m_impl->m_user_map.find(user_id) == m_impl->m_user_map.cend()) {
     throw std::logic_error("User id not in room.");
   }
-  serverManager.getUser(user_id)->notifyAll(data);
+  serverManager.getUser(user_id)->notifyAll(std::move(data));
 }
 
 /*
@@ -154,14 +154,15 @@ void KCPRoom::removeSocket(const std::shared_ptr<KCPSocket> &socket) {
   }
 }
 
-void KCPRoom::sendData(std::string_view data) {
+void KCPRoom::sendData(string_param data) {
   std::shared_lock lock(m_impl->m_socket_map_mutex);
   for (const auto &socket : std::as_const(m_impl->m_socket_map)) {
-    socket->async_write_some(asio::buffer(data), [](auto, auto) {});
+    socket->async_write_some(asio::buffer(std::string_view(data)),
+                             [](auto, auto) {});
   }
 }
 
-void KCPRoom::sendData(std::string_view data, UserID user_id) {}
+void KCPRoom::sendData(string_param data, UserID user_id) {}
 
 /*
  * ------------------------------------------------------------------------
@@ -169,14 +170,14 @@ void KCPRoom::sendData(std::string_view data, UserID user_id) {}
  * ------------------------------------------------------------------------
  */
 
-void TextDataRoom::sendData(std::string_view data) {
-  auto package = DataPackage::makePackage(data);
+void TextDataRoom::sendData(string_param data) {
+  auto package = DataPackage::makePackage(std::move(data));
   package->type = DataPackage::Text;
   TCPRoom::sendData(package->packageToString());
 }
 
-void TextDataRoom::sendData(std::string_view data, UserID user_id) {
-  auto package = DataPackage::makePackage(data);
+void TextDataRoom::sendData(string_param data, UserID user_id) {
+  auto package = DataPackage::makePackage(std::move(data));
   package->type = DataPackage::Text;
   TCPRoom::sendData(package->packageToString(), user_id);
 }

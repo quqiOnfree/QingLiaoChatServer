@@ -224,7 +224,7 @@ void User::firstUpdateUserPassword(string_param new_password) {
 
 void User::updateUserPassword(string_param old_password,
                               string_param new_password) {
-  if (!isUserPassword(old_password))
+  if (!isUserPassword(std::move(old_password)))
     throw std::system_error(qls_errc::password_mismatched,
                             "wrong old password");
 

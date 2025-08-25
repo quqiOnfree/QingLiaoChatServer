@@ -67,7 +67,7 @@ PrivateRoom::PrivateRoom(const UserID &user_id_1, const UserID &user_id_2,
 
 PrivateRoom::~PrivateRoom() noexcept { stop_cleaning(); }
 
-void PrivateRoom::sendMessage(std::string_view message,
+void PrivateRoom::sendMessage(string_param message,
                               const UserID &sender_user_id) {
   if (!m_impl->m_can_be_used) {
     throw std::system_error(
@@ -93,7 +93,7 @@ void PrivateRoom::sendMessage(std::string_view message,
   sendData(json.to_string());
 }
 
-void PrivateRoom::sendTipMessage(std::string_view message,
+void PrivateRoom::sendTipMessage(string_param message,
                                  const UserID &sender_user_id) {
   if (!m_impl->m_can_be_used) {
     throw std::system_error(

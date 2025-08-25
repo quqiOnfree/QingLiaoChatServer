@@ -43,8 +43,9 @@ public:
 
   ~InputImpl() = default;
 
-  bool input(std::string_view command) {
+  bool input(string_param param) {
     std::string first_word;
+    std::string_view command = param;
     std::string_view::const_iterator iter = command.cbegin();
     while (iter != command.cend() && *iter == ' ') {
       ++iter;
@@ -111,7 +112,8 @@ public:
   }
 
 private:
-  static std::string strip(std::string_view data) {
+  static std::string strip(string_param param) {
+    std::string_view data = param;
     std::string_view::const_iterator first = data.cbegin();
     auto last = data.crbegin();
 
@@ -128,7 +130,8 @@ private:
     return {first, last.base()};
   }
 
-  static std::vector<std::string> split(std::string_view data) {
+  static std::vector<std::string> split(string_param param) {
+    std::string_view data = param;
     std::vector<std::string> dataList;
 
     long long begin = -1;
@@ -157,4 +160,6 @@ Input::~Input() = default;
 
 void Input::init() {}
 
-bool Input::input(std::string_view command) { return m_impl->input(command); }
+bool Input::input(string_param command) {
+  return m_impl->input(std::move(command));
+}

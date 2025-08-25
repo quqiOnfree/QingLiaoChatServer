@@ -4,6 +4,8 @@
 #include <memory>
 #include <string_view>
 
+#include "string_param.hpp"
+
 class InputImpl;
 namespace qls {
 
@@ -14,7 +16,7 @@ public:
 
   void init();
 
-  bool input(std::string_view command);
+  bool input(string_param command);
 
 private:
   std::unique_ptr<InputImpl> m_impl;

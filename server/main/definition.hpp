@@ -12,12 +12,12 @@
 #if defined(_MSC_VER) && defined(__cpp_lib_stacktrace) &&                      \
     defined(__cpp_lib_source_location) && defined(__cpp_lib_format)
 #define ERROR_WITH_STACKTRACE(errmsg)                                          \
-  [](std::string_view err,                                                     \
+  [](string_param err,                                                         \
      std::source_location location = std::source_location::current()) {        \
     return std::format("error: {}\nin file \"{}\" line {}, function "          \
                        "\"{}\"\nstack trace: \n{}\n",                          \
-                       err, location.file_name(), location.line(),             \
-                       location.function_name(),                               \
+                       std::string_view(err), location.file_name(),            \
+                       location.line(), location.function_name(),              \
                        std::to_string(std::stacktrace::current()));            \
   }(errmsg)
 #else
@@ -30,6 +30,7 @@
 #include <functional>
 
 #include "groupid.hpp"
+#include "string_param.hpp"
 #include "userid.hpp"
 
 namespace qls {
@@ -50,6 +51,9 @@ struct string_hash {
     return hash_type{}(str);
   }
   std::size_t operator()(const std::string &str) const {
+    return hash_type{}(str);
+  }
+  std::size_t operator()(const string_param &str) const {
     return hash_type{}(str);
   }
 };

@@ -13,6 +13,7 @@
 
 #include "rateLimiter.hpp"
 #include "socket.hpp"
+#include "string_param.hpp"
 
 namespace qls {
 
@@ -28,7 +29,7 @@ inline std::string socket2ip(const qls::Socket &s);
  * @param data The binary data.
  * @return The string representation of the binary data.
  */
-inline std::string showBinaryData(std::string_view data);
+inline std::string showBinaryData(string_param data);
 
 /**
  * @class Network
@@ -62,7 +63,7 @@ public:
    * @param host The host address.
    * @param port The port number.
    */
-  void run(std::string_view host, std::uint16_t port);
+  void run(string_param host, std::uint16_t port);
 
   /**
    * @brief Stops the network operations.

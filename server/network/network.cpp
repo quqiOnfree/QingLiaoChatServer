@@ -62,8 +62,16 @@ void Network::setTlsConfig(
   }
 }
 
-void Network::run(std::string_view host, std::uint16_t port) {
-  m_host = host;
+void Network::run(string_param host, std::uint16_t port) {
+  if (host.is_owned()) {
+    if (host.is_std()) {
+      m_host = std::move(host).extract_std();
+    } else {
+      m_host = std::move(host).extract_pmr();
+    }
+  } else {
+    m_host = std::string(host);
+  }
   m_port = port;
 
   // Check if SSL context ptr is null
@@ -243,13 +251,13 @@ inline std::string socket2ip(const Socket &s) {
                      static_cast<std::uint32_t>(endpoint.port()));
 }
 
-inline std::string showBinaryData(std::string_view data) {
+inline std::string showBinaryData(string_param data) {
   auto isShowableCharacter = [](unsigned char chr) -> bool {
     return 32 <= chr && chr <= 126;
   };
 
   std::string result;
-  for (const auto &iter : data) {
+  for (const auto &iter : std::string_view(data)) {
     if (isShowableCharacter(static_cast<unsigned char>(iter))) {
       result += iter;
     } else {

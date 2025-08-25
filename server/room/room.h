@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "socket.hpp"
+#include "string_param.hpp"
 #include "userid.hpp"
 
 namespace qls {
@@ -34,8 +35,8 @@ public:
   [[nodiscard]] virtual bool hasUser(UserID user_id) const = 0;
   virtual void leaveRoom(UserID user_id) = 0;
 
-  virtual void sendData(std::string_view data) = 0;
-  virtual void sendData(std::string_view data, UserID user_id) = 0;
+  virtual void sendData(string_param data) = 0;
+  virtual void sendData(string_param data, UserID user_id) = 0;
 };
 
 struct TCPRoomImpl;
@@ -58,8 +59,8 @@ public:
   [[nodiscard]] virtual bool hasUser(UserID user_id) const;
   virtual void leaveRoom(UserID user_id);
 
-  virtual void sendData(std::string_view data);
-  virtual void sendData(std::string_view data, UserID user_id);
+  virtual void sendData(string_param data);
+  virtual void sendData(string_param data, UserID user_id);
 
 private:
   std::unique_ptr<TCPRoomImpl, TCPRoomImplDeleter> m_impl;
@@ -90,9 +91,9 @@ public:
   hasSocket(const std::shared_ptr<KCPSocket> &socket) const;
   virtual void removeSocket(const std::shared_ptr<KCPSocket> &socket);
 
-  virtual void sendData(std::string_view data);
+  virtual void sendData(string_param data);
   [[deprecated("This function is not useful at kcp connection")]]
-  virtual void sendData(std::string_view data, UserID user_id);
+  virtual void sendData(string_param data, UserID user_id);
 
 private:
   std::unique_ptr<KCPRoomImpl, KCPRoomImplDeleter> m_impl;
@@ -104,8 +105,8 @@ public:
   virtual ~TextDataRoom() noexcept = default;
 
 protected:
-  virtual void sendData(std::string_view data);
-  virtual void sendData(std::string_view data, UserID user_id);
+  virtual void sendData(string_param data);
+  virtual void sendData(string_param data, UserID user_id);
 };
 
 } // namespace qls
