@@ -216,14 +216,16 @@ private:
 } // namespace qls
 
 namespace std {
-template <> struct formatter<qls::string_param, char> {
-  template <typename ParseContext> constexpr auto parse(ParseContext &ctx) {
+template <>
+struct formatter<qls::string_param> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx) {
     return ctx.begin();
   }
 
   template <typename FormatContext>
   auto format(const qls::string_param &str_param, FormatContext &ctx) const {
-    return std::ranges::copy(std::string_view(str_param), ctx.out()).out;
+    return format_to(ctx.out(), "{}", std::string_view(str_param));
   }
 };
 } // namespace std
