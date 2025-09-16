@@ -68,14 +68,13 @@ public:
    * @return Shared pointer to the created data package.
    */
   [[nodiscard]] static std::unique_ptr<DataPackage, DataPackageDeleter>
-  makePackage(std::string_view string_data,
+  makePackage(std::string_view data,
               DataPackageType type = DataPackageType::Unknown,
               LengthType sequenceSize = 1, LengthType sequence = 0,
               RequestIDType requestID = 0) {
-    std::string_view data = string_data;
     const std::size_t lenth = sizeof(DataPackage) + data.size();
     void *mem =
-        local_datapack_sync_pool.allocate(static_cast<LengthType>(lenth));
+        local_datapack_sync_pool.allocate(lenth);
     std::memset(mem, 0, lenth);
     std::unique_ptr<DataPackage, DataPackageDeleter> package(
         static_cast<DataPackage *>(mem));
@@ -94,8 +93,7 @@ public:
    * @return Shared pointer to the loaded data package.
    */
   [[nodiscard]] static std::unique_ptr<DataPackage, DataPackageDeleter>
-  stringToPackage(std::string_view string_data) {
-    std::string_view data = string_data;
+  stringToPackage(std::string_view data) {
     // Check if the package data is too small
     if (data.size() < sizeof(DataPackage)) {
       throw std::system_error(qls_errc::data_too_small);

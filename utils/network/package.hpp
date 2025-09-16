@@ -126,9 +126,7 @@ public:
    * @brief Sets the buffer with the given data.
    * @param buffer The data to set in the buffer.
    */
-  void setBuffer(std::string_view buffer) {
-    m_buffer = buffer;
-  }
+  void setBuffer(std::string_view buffer) { m_buffer = buffer; }
 
 private:
   std::pmr::string m_buffer;
