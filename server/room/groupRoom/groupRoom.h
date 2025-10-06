@@ -24,7 +24,7 @@ class GroupRoom : public TextDataRoom {
 public:
   struct UserDataStructure {
     std::string nickname;
-    UserLevel<1, 100> level;
+    UserLevel<> level;
   };
 
   GroupRoom(const GroupID &group_id, const UserID &administrator,

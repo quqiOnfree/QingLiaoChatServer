@@ -27,7 +27,7 @@ public:
   Package(Package &&) = default;
 
   Package &operator=(const Package &) = delete;
-  Package &operator=(Package &&) = default;
+  Package &operator=(Package &&) noexcept = default;
 
   /**
    * @brief Writes data into the class.

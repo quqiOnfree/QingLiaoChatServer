@@ -29,9 +29,8 @@ namespace qls {
  * @return qjson::JObject representing the error message JSON object.
  */
 [[nodiscard]] inline qjson::JObject makeErrorMessage(std::string_view msg) {
-  return makeMessage(
-      "error",
-      std::move(msg)); // Use makeMessage to create an error JSON object
+  return makeMessage("error",
+                     msg); // Use makeMessage to create an error JSON object
 }
 
 /**
@@ -40,9 +39,8 @@ namespace qls {
  * @return qjson::JObject representing the success message JSON object.
  */
 [[nodiscard]] inline qjson::JObject makeSuccessMessage(std::string_view msg) {
-  return makeMessage(
-      "success",
-      std::move(msg)); // Use makeMessage to create a success JSON object
+  return makeMessage("success",
+                     msg); // Use makeMessage to create a success JSON object
 }
 
 } // namespace qls

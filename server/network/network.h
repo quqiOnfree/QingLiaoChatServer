@@ -21,7 +21,7 @@ namespace qls {
  * @param s The socket.
  * @return The string representation of the socket's address.
  */
-inline std::string socket2ip(const qls::Socket &s);
+inline std::string socket2ip(const qls::Socket &socket);
 
 /**
  * @brief Displays binary data as a string.

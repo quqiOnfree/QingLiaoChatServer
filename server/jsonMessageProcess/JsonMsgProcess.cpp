@@ -84,7 +84,7 @@ private:
 bool JsonMessageProcessCommandList::addCommand(
     std::string_view function_name,
     const std::shared_ptr<JsonMessageCommand> &command_ptr) {
-  if (hasCommand(std::move(function_name)) || !command_ptr) {
+  if (hasCommand(function_name) || !command_ptr) {
     return false;
   }
 
@@ -111,7 +111,7 @@ JsonMessageProcessCommandList::getCommand(std::string_view function_name) {
 
 bool JsonMessageProcessCommandList::removeCommand(
     std::string_view function_name) {
-  if (!hasCommand(std::move(function_name))) {
+  if (!hasCommand(function_name)) {
     return false;
   }
 
@@ -235,14 +235,16 @@ asio::awaitable<qjson::JObject> JsonMessageProcessImpl::processJsonMessage(
     auto command_ptr = m_jmpc_list.getCommand(function_name);
     const qjson::dict_t &param_dict = param.getDict();
     // Check whether the type of json values match the options
-    for (const auto &[name, type] : command_ptr->getOption()) {
+    const auto &options = command_ptr->getOption();
+    for (const auto &[name, type] : options) {
       auto local_iter = param_dict.find(std::string_view(name));
       if (local_iter == param_dict.cend()) {
-        co_return makeErrorMessage(std::format("Lost a parameter: {}.", name));
+        auto fmt = std::format("Lost a parameter: {}.", name);
+        co_return makeErrorMessage(fmt);
       }
       if (local_iter->second.getType() != type) {
-        co_return makeErrorMessage(
-            std::format("Wrong parameter type: {}.", name));
+        auto fmt = std::format("Wrong parameter type: {}.", name);
+        co_return makeErrorMessage(fmt);
       }
     }
 
@@ -303,7 +305,7 @@ JsonMessageProcessImpl::login(const UserID &user_id, std::string_view password,
 
   auto user = serverManager.getUser(user_id);
 
-  if (user->isUserPassword(std::move(password))) {
+  if (user->isUserPassword(password)) {
     // check device type
     if (std::string_view(device) == "PersonalComputer") {
       serverManager.modifyUserOfConnection(socket_service.get_connection_ptr(),

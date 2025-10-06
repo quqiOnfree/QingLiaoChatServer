@@ -47,7 +47,7 @@ private:
 public:
   struct DataPackageDeleter {
     void operator()(DataPackage *ptr) const noexcept {
-      if (ptr) {
+      if (ptr != nullptr) {
         std::size_t length = ptr->length;
         ptr->~DataPackage();
         DataPackage::local_datapack_sync_pool.deallocate(ptr, length);

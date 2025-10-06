@@ -237,8 +237,8 @@ awaitable<void> Network::timeout(const std::chrono::nanoseconds &duration) {
   throw std::system_error(make_error_code(std::errc::timed_out));
 }
 
-inline std::string socket2ip(const Socket &s) {
-  auto endpoint = s.lowest_layer().remote_endpoint();
+inline std::string socket2ip(const Socket &socket) {
+  auto endpoint = socket.lowest_layer().remote_endpoint();
   return std::format("{}:{}", endpoint.address().to_string(),
                      static_cast<std::uint32_t>(endpoint.port()));
 }
