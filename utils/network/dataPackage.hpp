@@ -73,8 +73,7 @@ public:
               LengthType sequenceSize = 1, LengthType sequence = 0,
               RequestIDType requestID = 0) {
     const std::size_t lenth = sizeof(DataPackage) + data.size();
-    void *mem =
-        local_datapack_sync_pool.allocate(lenth);
+    void *mem = local_datapack_sync_pool.allocate(lenth);
     std::memset(mem, 0, lenth);
     std::unique_ptr<DataPackage, DataPackageDeleter> package(
         static_cast<DataPackage *>(mem));
