@@ -160,6 +160,4 @@ Input::~Input() = default;
 
 void Input::init() {}
 
-bool Input::input(std::string_view command) {
-  return m_impl->input(command);
-}
+bool Input::input(std::string_view command) { return m_impl->input(command); }
