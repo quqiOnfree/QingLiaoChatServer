@@ -131,22 +131,6 @@ public:
   }
 
   /**
-   * @brief Submits a function to the task queue and returns a future to get the
-   * result.
-   * @tparam Func Function type.
-   * @tparam Args Argument types.
-   * @param func Function to submit.
-   * @param args Arguments to pass to the function.
-   * @return std::future to get the result of the function.
-   */
-  template <typename Func, typename... Args>
-  auto submit(Func &&func, Args &&...args)
-      -> std::future<decltype(func(args...))> {
-    return submit(asio::use_future, std::forward<Func>(func),
-                  std::forward<Args>(args)...);
-  }
-
-  /**
    * @brief Submits a function as an awaitable task.
    * @tparam R Return type.
    * @tparam Func Function type.
@@ -175,6 +159,21 @@ public:
           this->m_cv.notify_all();
         },
         token, std::forward<Func>(func), std::forward<Args>(args)...);
+  }
+
+  /**
+   * @brief Submits a function to the task queue and returns a future to get the
+   * result.
+   * @tparam Func Function type.
+   * @tparam Args Argument types.
+   * @param func Function to submit.
+   * @param args Arguments to pass to the function.
+   * @return std::future to get the result of the function.
+   */
+  template <typename Func, typename... Args>
+  auto submit(Func &&func, Args &&...args) {
+    return submit(asio::use_future, std::forward<Func>(func),
+                  std::forward<Args>(args)...);
   }
 
   /**
